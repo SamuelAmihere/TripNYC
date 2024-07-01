@@ -2,7 +2,7 @@
 from shapely.wkb import loads as wkb
 from sqlalchemy import Column, ForeignKey, Enum, Integer, String, Float, Table
 from geoalchemy2 import Geometry
-from models.base.base_model import BaseModel, Base
+from models.base.base_model_loc import BaseModel, Base
 
 class TaxiZone(BaseModel, Base):
     __tablename__ = 'taxi_zones'

@@ -7,9 +7,9 @@ from models import base
 import uuid
 from datetime import datetime
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 storage_type = os.getenv('TRIPNYC_TYPE_STORAGE')
 
