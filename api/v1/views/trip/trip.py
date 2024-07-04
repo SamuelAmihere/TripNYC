@@ -1,6 +1,6 @@
 from flask import jsonify
 from api.v1.views import app_views
-from models.location.taxizone import TaxiZone
+from models.location.zone import TaxiZone
 from flask_restx import Api, Resource, fields
 
 

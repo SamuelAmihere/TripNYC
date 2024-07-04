@@ -10,6 +10,10 @@ from geoalchemy2 import Geometry
 from shapely import wkb
 import psycopg2
 from dotenv import load_dotenv
+
+from models.location.borough import Borough
+from models.location.zone import Zone
+from models.utils.data import create_zone
 load_dotenv()
 
 
@@ -26,7 +30,13 @@ CORS(app, resources={'/*': {'origins': host+':'+port}})
 @app.route('/', methods=['GET'])
 def status():
     """ Status of API """
-    return jsonify({"status": "OK"})
+
+    boroughs = storage.all(Borough)
+    zones = storage.all(Zone)
+    zones = [zone.to_dict() for zone in zones.values()]
+    boroughs = [borough.to_dict() for borough in boroughs.values()]
+    
+    return jsonify([{"status": "OK"}, boroughs, zones[0:10]])
 
 @app.teardown_appcontext
 def teardown_db(exception):

@@ -9,7 +9,12 @@ from models.base import storage_type
 
 from hashlib import md5
 
-classes = {}
+from models.location.borough import Borough
+from models.location.zone import Zone
+from models.trip.trip import Trip
+
+
+classes = {'Zone': Zone, 'Borough': Borough}
 
 
 class FileStorage:
@@ -22,12 +27,14 @@ class FileStorage:
 
     def all(self, cls=None):
         """returns the dictionary __objects"""
-        if cls is not None:
+        
+        if cls:
             new_dict = {}
             for key, value in self.__objects.items():
                 if cls == value.__class__ or cls == value.__class__.__name__:
                     new_dict[key] = value
             return new_dict
+
         return self.__objects
 
     def new(self, obj):
@@ -53,9 +60,11 @@ class FileStorage:
                 jo = json.load(f)
             for key in jo:
                 self.__objects[key] = classes[jo[key]["__class__"]](**jo[key])
-        except:
+            
+        except FileNotFoundError as e:
+            print(f"Error loading file: {e}")
             pass
-
+    
     def delete(self, obj=None):
         """delete obj from __objects if it’s inside"""
         if obj is not None:
@@ -104,12 +113,14 @@ class FileStorage:
         Returns the object based on the class name and its ID, or
         None if not found
         """
+        
         if cls not in classes.values():
             return None
 
         all_cls = base.storage.all(cls)
+        
         for value in all_cls.values():
             if all(getattr(value, key) == val for key, val in kwargs.items()):
                 return value
-
+        
         return None

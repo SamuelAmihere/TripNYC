@@ -3,7 +3,7 @@
 
 from flask import jsonify
 from api.v1.views import app_views
-from models.location.taxizone import TaxiZone
+from models.location.zone import Zone
 
 
 @app_views.route('/zones', methods=['GET'])
@@ -14,10 +14,10 @@ def get_zones():
 
 @app_views.route('/zones/<int:zone_id>', methods=['GET'])
 def get_zone(zone_id):
-    zone = TaxiZone.query.get_or_404(zone_id)
+    zone = Zone.query.get_or_404(zone_id)
     return jsonify(zone.to_dict())
 
 @app_views.route('/zones/borough/<borough>', methods=['GET'])
 def get_zones_by_borough(borough):
-    zones = TaxiZone.query.filter_by(borough=borough).all()
+    zones = Zone.query.filter_by(borough=borough).all()
     return jsonify([zone.to_dict() for zone in zones])
