@@ -6,10 +6,11 @@ from sqlalchemy.orm import relationship
 from models.base import storage_type
 
 
-class Taxi(BaseModel, Base):
-    """Represents a taxi."""
-    __tablename__ = 'taxi'
+class ForHireVehicle(BaseModel, Base):
+    """Represents a for-hire vehicle."""
+    __tablename__ = 'for_hire_vehicle'
     if storage_type == 'db':
-        color = Column(String(50))
+        dispatching_base_number = Column(String(50))
+
     elif storage_type == 'file':
-        color = ""
+        dispatching_base_number = ""

@@ -13,18 +13,23 @@ def create_zone(filename):
     except FileNotFoundError:
         print("---File not found---")
         return
-    n = 0
+
     for br, zn, lat, lon, locid, geo in \
         zip(df['Borough'], df['Zone'],df['lat'], df['lon'],
             df['LocationID'], df['geometry']):
         
         borough = storage.get_by(Borough, name=br)
-        if not borough and n == 0:
+        if not borough:
             borough = Borough(name=br)
-            borough.save()
+            if not borough:
+                print(f"Error creating borough {br}")
+                continue
+        
         zone = storage.get_by(Zone, name=zn, locationID=locid)
         if not zone:
             zone = Zone(name=zn, locationID=locid, latitude=lat, longitude=lon, borough_id=borough.id)
             zone.save()
-        
-        print(br, zn, lat, lon, locid)
+            borough.zones = zone.id
+            borough.save()
+        else:
+            print(f"Zone {zone.id} already exists")

@@ -31,12 +31,21 @@ CORS(app, resources={'/*': {'origins': host+':'+port}})
 def status():
     """ Status of API """
 
-    boroughs = storage.all(Borough)
-    zones = storage.all(Zone)
-    zones = [zone.to_dict() for zone in zones.values()]
-    boroughs = [borough.to_dict() for borough in boroughs.values()]
+    src = '../TripNYC-resources/Data/nb_lat_lon_final.csv'
+    create_zone(src)
+
+    boroughs = storage.all(Borough).values()
+    boroughs_d = []
     
-    return jsonify([{"status": "OK"}, boroughs, zones[0:10]])
+    for borough in boroughs:
+        borough = borough.to_dict()
+        br = borough.copy()
+        # print(borough) 
+        borough.update({'zones':
+                        [storage.get_by(Zone, id=z).name for z in br.get('zones')]})
+        boroughs_d.append(borough)
+ 
+    return jsonify([{"status": "OK"}, boroughs_d])
 
 @app.teardown_appcontext
 def teardown_db(exception):
