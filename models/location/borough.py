@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """This module contains the Zone class"""
+import os
 from models.base.base_model import BaseModel, Base
 from sqlalchemy import Column, String, Integer, Float
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
-from models.base import storage_type
-from models.location.zone import Zone
-from models.trip.trip import Trip
-from models.utils.model_func import update_value
+from models.utils.model_func import add_data, update_value
+from dotenv import load_dotenv
+load_dotenv()
 
+
+storage_type = os.getenv('TRIPNYC_TYPE_STORAGE')
 
 class Borough(BaseModel, Base):
     """Represents a borough."""
@@ -26,17 +28,6 @@ class Borough(BaseModel, Base):
         country = "USA"
         zones = []
 
-        # @property
-        # def zones(self):
-        #     """Gets all zones in the borough"""
-        #     return getattr(Borough, 'zones', id=self.id)
-
-        # @zones.setter
-        # def zones(self, value: str):
-        #     """Sets the zones for the borough"""
-        #     self.__dict__['zones'] = update_value(Borough, 'zones', value, id=self.id) + [value]
-
-
         @property
         def zones(self):
             """Gets all zones in the borough"""
@@ -47,15 +38,6 @@ class Borough(BaseModel, Base):
             return []
 
         @zones.setter
-        def zones(self, value: str):
+        def zones(self, value: list):
             """Sets the zones for the borough"""
-            update_value(Borough, 'zones', value, id=self.id)
-            # print(f"<={_}=>")
-
-            # if result:
-            #     self.__dict__.update(result)
-            #     print(f"{self.__dict__['zones']}")
-            # else:
-            #     self.__dict__.update({'zones': [value]})
-            
-            
+            _ = update_value(self, Borough, 'zones', value, id=self.id)

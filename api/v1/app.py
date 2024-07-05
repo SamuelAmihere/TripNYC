@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 
 from models.location.borough import Borough
 from models.location.zone import Zone
-from models.utils.data import create_zone
+from utils.data import create_zone
 load_dotenv()
 
 
@@ -32,20 +32,24 @@ def status():
     """ Status of API """
 
     src = '../TripNYC-resources/Data/nb_lat_lon_final.csv'
-    create_zone(src)
+    # create_zone(src)
 
     boroughs = storage.all(Borough).values()
-    boroughs_d = []
+    zones = storage.all(Zone).values()
+    zones1 = {i.id: i.name for i in zones}
     
+    # get data by id
+    filter_name = lambda id: zones1.get(id, None)
+    
+    boroughs_d = []
     for borough in boroughs:
         borough = borough.to_dict()
         br = borough.copy()
-        # print(borough) 
         borough.update({'zones':
-                        [storage.get_by(Zone, id=z).name for z in br.get('zones')]})
+                        list(map(lambda x: filter_name(x), br['zones']))})
         boroughs_d.append(borough)
  
-    return jsonify([{"status": "OK"}, boroughs_d])
+    return jsonify([{"status": "OK"}, boroughs_d, list(zones1.values())])
 
 @app.teardown_appcontext
 def teardown_db(exception):

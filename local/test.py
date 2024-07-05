@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-from models.base.base_model_loc import BaseModel, Base
+from models.base.base_model import BaseModel, Base
 from sqlalchemy import Column, Integer, String, DateTime
 
 

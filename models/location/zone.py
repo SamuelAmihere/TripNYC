@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """This module contains the Zone class"""
+import os
 from models.base.base_model import BaseModel, Base
 from sqlalchemy import Column, ForeignKey, String, Integer, Float
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
-from models.base import storage_type
 from models.trip.trip import Trip
-from models.utils.model_func import add_data, getter, update_value
+from models.utils.model_func import add_data
+from dotenv import load_dotenv
+load_dotenv()
 
+
+storage_type = os.getenv('TRIPNYC_TYPE_STORAGE')
 
 class Zone(BaseModel, Base):
-    """Represents a taxi zone."""
     __tablename__ = 'zone'
     if storage_type == 'db':
         name = Column(String(255), nullable=False)

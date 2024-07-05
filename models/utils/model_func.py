@@ -36,13 +36,13 @@ def getter(cls, attr, **kwargs)->dict:
     return: The value of the attribute
     """
     from models.base import storage
-    vals = storage.get_by(cls, **kwargs)
-    x = {}
-    if vals:
-        x[attr] = vals.to_dict().get(attr, [])
-    return x
+    x = storage.get_by(cls, **kwargs)
+    if not x:
+        return []
+    return x.to_dict().get(attr, [])
 
-def update_value(cls, attr, value, **kwargs)->dict:
+
+def update_value(caller, cls, attr, value, **kwargs)->dict:
     """Sets an object in the database
     Args:
         cls: The class of the object to set
@@ -51,11 +51,12 @@ def update_value(cls, attr, value, **kwargs)->dict:
         kwargs: The key-value pairs to search for
     """
     from models.base import storage
-    vals = storage.get_by(cls, **kwargs)
-    if vals:
-        temp = vals.to_dict()
-        if temp and attr in temp.keys():
-            print(f"<<<<{temp[attr]}>>>>")
-    else:
-        print(f"Error updating {cls} {kwargs}")   
+    # get exixting value
+    x = storage.get_by(cls, **kwargs)
+    if not x:
+        caller.__dict__[attr] = value
+        return caller.__dict__[attr]
+    x_vals = x.to_dict()[attr]
+    caller.__dict__[attr] = list(set([*x_vals, *value]))
+    return caller.__dict__[attr]
 

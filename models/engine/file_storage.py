@@ -5,17 +5,9 @@ Contains the FileStorage class
 
 import json
 import models.base as base
-from models.base import storage_type
+from models.base import classes
 
 from hashlib import md5
-
-from models.location.borough import Borough
-from models.location.zone import Zone
-from models.trip.trip import Trip
-
-
-classes = {'Zone': Zone, 'Borough': Borough}
-
 
 class FileStorage:
     """serializes instances to a JSON file & deserializes back to instances"""
