@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Taxi Zones Map</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            /* background: #545151; */
+            display: flex;
+            /* justify-content: center; */
+            /* align-items: center; */
+            height: 100vh;
+        }
+        #map-container {
+            /* width: 50%; */
+            height: 400px;
+            overflow: auto;
+            float: left;
+            justify-content: center;
+            scroll-snap-align: start;
+            border: #d11c1c 2px solid;
+            background-color: black;
+            border-radius: 10px;
+            margin-top: auto;
+            margin-bottom: auto;
+            margin-left: 5px;
+            left: 10px;
+
+
+        }
+        #svg-object {
+            width: 110%;
+            height: 120%;
+            padding: auto;
+            margin: 0;
+            /* display: block; */
+
+        }
+        #right-pane {
+            /* width: 50%; */
+            height: 400px;
+            float: right;
+            justify-content: center;
+            border: #312d2d 2px solid;
+            border-radius: 10px;
+            margin-top: auto;
+            margin-bottom: auto;
+            margin-right: 5px;
+            right: 10px;
+            margin-left: 2px
+
+        }
+        #right-container, #right-pane {
+            /* width: 50%; */
+            height: 400px;
+            overflow: auto;
+            justify-content: center;
+            border-radius: 10px;
+            margin-top: auto;
+            margin-bottom: auto;
+            margin-right: 5px;
+            right: 10px;
+        }
+
+        #right-container{
+            /* width: 50%; */
+            height: 400px;
+            overflow: auto;
+            justify-content: center;
+            scroll-snap-align: start;
+            border-radius: 10px;
+            margin-top: auto;
+            margin-bottom: auto;
+            margin-right: 5px;
+            right: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="map-container">
+        <object id="svg-object" type="image/svg+xml" data="{{ url_for('static', filename='nyc_taxi_zones_grouped.svg') }}" width="90%" height="80%">
+            Your browser does not support SVG
+        </object>
+    </div>
+
+    <div id="right-pane">
+        <h1>Zones</h1>
+        <div id="right-container">
+            <ul>
+                {% for borough in bzones %}
+                    <li>{{ borough.name}}
+                        
+                        <ul>
+                            {% for z in borough.zones %}
+                            <li>{{ z }}</li>
+                            {% endfor %}
+                        </ul>                    
+                        
+                    </li>
+                {% endfor %}
+            </ul>            
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="{{ url_for('static', filename='../static/grouped.js') }}"></script>
+</body>
+</html>

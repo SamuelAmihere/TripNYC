@@ -36,6 +36,8 @@ def status():
 
     boroughs = storage.all(Borough).values()
     zones = storage.all(Zone).values()
+    print("-------------------------------")
+    print(zones)
     # zones1 = {i.id: i.name for i in zones}
     
     # # get data by id

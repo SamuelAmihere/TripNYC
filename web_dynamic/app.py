@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 """ TripNYC Application """
-from models.base import storage
+from models.base import storage, storage_type
 from flask import Flask, render_template, make_response, jsonify
+from utils.svg import svgmap
 from flask_cors import CORS, cross_origin
 from api.v1.views import app_views
 import os
@@ -28,7 +29,7 @@ CORS(app, resources={'/*': {'origins': host+':'+port}})
 
 @app.route('/index',  methods=['GET'])
 @app.route('/', methods=['GET'])
-def status():
+def home():
     """ Status of API """
 
     src = '../TripNYC-resources/Data/nb_lat_lon_final.csv'
@@ -36,20 +37,68 @@ def status():
 
     boroughs = storage.all(Borough).values()
     zones = storage.all(Zone).values()
-    # zones1 = {i.id: i.name for i in zones}
+    zones1 = {i.id: i.name for i in zones}
     
-    # # get data by id
-    # filter_name = lambda id: zones1.get(id, None)
+    # get data by id
+    filter_name = lambda id: zones1.get(id, None)
     
-    # boroughs_d = []
-    # for borough in boroughs:
-    #     borough = borough.to_dict()
-    #     br = borough.copy()
-    #     borough.update({'zones':
-    #                     list(map(lambda x: filter_name(x), br.get('zones')))})
-    #     boroughs_d.append(borough)
- 
-    return render_template('nyc_taxi_zones.html', boroughs=boroughs, zones=zones)
+    boroughs_d = []
+    
+
+    for borough in boroughs:
+        borough = borough.to_dict()
+        br = borough.copy()
+        if storage_type == 'db':
+            borough.update({'zones':
+                        list(map(lambda x: filter_name(x), zones1))})
+            boroughs_d.append(borough)
+            
+            
+        else:
+            borough.update({'zones':
+                            list(map(lambda x: filter_name(x), br.get('zones')))})
+            boroughs_d.append(borough)
+    html1 = 'nyc_taxi_zones.html'
+    html2 = 'index.html'
+    return render_template(html2, bzones=boroughs_d, nyc_map=svgmap.get('nyc'))
+
+@app.route('/taxi_zone_lookup', methods=['GET'])
+def taxi_zone_lookup():
+    """ get taxi zone by id """
+    print('--------------------')
+    boroughs = storage.all(Borough).values()
+    zones = storage.all(Zone).values()
+    
+    zones1 = {i.id: i.name for i in zones}
+    zones2 = {i.id: [i.to_dict().get('name'), i.to_dict().get('locationID')] for i in zones}
+    print(zones2.values())
+    
+    # get data by id
+    filter_name = lambda id: zones1.get(id, None)
+    
+    boroughs_d = []
+    
+
+    for borough in boroughs:
+        borough = borough.to_dict()
+        br = borough.copy()
+        if storage_type == 'db':
+            borough.update({'zones':
+                        list(map(lambda x: filter_name(x), zones1))})
+            boroughs_d.append(borough)
+        else:
+            borough.update({'zones':
+                            list(map(lambda x: filter_name(x), br.get('zones')))})
+            boroughs_d.append(borough)
+    zones = []
+    for z in zones:
+        z = z.to_dict()
+        # z.update({'borough': filter_name(z.get('borough'))})
+        print('--------------------')
+        print(z.keys())
+        zones.append(z.to_dict())
+    
+    return jsonify([zones2])
 
 @app.teardown_appcontext
 def teardown_db(exception):

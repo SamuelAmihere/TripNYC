@@ -1,0 +1,28 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Taxi Zones</title>
+</head>
+<body>
+    <object type="image/svg+xml" data="{{ url_for('static', filename='nyc_taxi_zones_grouped.svg') }}" width="90%" height="80%">
+        Your browser does not support SVG
+    </object>
+    
+     <!-- <p>Zones</p>
+    <ul>
+        {% for borough in bzones %}
+            <li>{{ borough.name}}
+                
+                <ul>
+                    {% for z in borough.zones %}
+                    <li>{{ z }}</li>
+                    {% endfor %}
+                </ul>                    
+                
+            </li>
+        {% endfor %} -->
+</body>
+</html>
