@@ -3,17 +3,12 @@
 import os
 from models.base.base_model import BaseModel, Base
 from sqlalchemy import Column, ForeignKey, String, Integer, Float, DateTime
-from sqlalchemy.orm import relationship
-from models.vehicle.vehicle import Taxi
-from models.base import classes
 from models.utils.model_func import add_data
 from dotenv import load_dotenv
 load_dotenv()
 
 
 storage_type = os.getenv('TRIPNYC_TYPE_STORAGE')
-Vehicle = classes.get('Vehicle')
-Zone = classes.get('Zone')
 
 class TaxiTrip(BaseModel, Base):
     """Represents a taxi trip."""
@@ -28,8 +23,8 @@ class TaxiTrip(BaseModel, Base):
         total_amount = Column(Float, default=0.0)
         congestion_surcharge = Column(Float, default=0.0)
 
-        trip_id = Column(Integer, ForeignKey('taxi.id'), nullable=False)
-        amount_estimator = Column(Integer, ForeignKey('prediction.id'), nullable=False)
+        taxi = Column(String(255), ForeignKey('vehicle.id'), nullable=False)
+        amount_estimator = Column(String(255), ForeignKey('prediction.id'), nullable=False)
 
         # Relationships
 

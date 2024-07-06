@@ -20,13 +20,12 @@ class Zone(BaseModel, Base):
         locationID = Column(Integer)
         latitude = Column(Float)
         longitude = Column(Float)
-        geometry = Column(Geometry('POLYGON'))
+        line = Column(Geometry)
+        geometry = Column(Geometry)
         # foreign key relationships
-        borough_id = Column(Integer, ForeignKey('borough.id'))
+        borough_id = Column(String(255), ForeignKey('borough.id'))
         # Relationships (example)
         borough = relationship("Borough", back_populates="zones")
-        trips_pickup = relationship("Trip", backref="pickup_location", foreign_keys="Trip.pickup_location")
-        trips_dropoff = relationship("Trip", backref="dropoff_location", foreign_keys="Trip.dropoff_location")
 
     elif storage_type == 'file':
         name = ""

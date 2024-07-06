@@ -2,7 +2,9 @@
 """create a unique FileStorage instance for your application"""
 from models.location.borough import Borough
 from models.location.zone import Zone
+from models.ml.ml import Prediction, ModelPerformance, ML
 from models.trip.fhv_trip import FHVTrip
+from models.trip.rating import Rating
 from models.trip.taxi_trip import TaxiTrip
 from models.trip.trip import Trip
 from models.vehicle.base import DispatchBase
@@ -16,7 +18,11 @@ classes = {'Zone': Zone, 'Borough': Borough,
            'Vehicle':Vehicle, 'Trip': Trip,
            'DispatchBase': DispatchBase,
             'FHVTrip': FHVTrip,
-            'TaxiTrip': TaxiTrip
+            'TaxiTrip': TaxiTrip,
+            'Prediction': Prediction,
+            'ML': ML,
+            'ModelPerformance': ModelPerformance,
+            'Rating': Rating
            }
 
 storage_type = os.getenv('TRIPNYC_TYPE_STORAGE')

@@ -3,7 +3,7 @@
 from utils.data import create_zone, create_vehicles
 
 
-src_zones = '../TripNYC-resources/Data/nb_lat_lon_final.csv'
+src_zones = '../TripNYC-resources/Data/nb_lat_lon_final_geo.csv'
 
 create_zone(src_zones)
 create_vehicles()

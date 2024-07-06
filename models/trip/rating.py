@@ -22,7 +22,7 @@ class Rating(BaseModel, Base):
         trip_id = Column(String(255), ForeignKey('trip.id'))
 
         # Relationships
-        trip = relationship("Trip", back_populates="rating")
+        trip = relationship("Trip", back_populates="ratings")
 
     elif storage_type == 'file':
         name = ""

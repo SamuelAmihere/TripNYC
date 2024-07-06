@@ -19,12 +19,12 @@ class Trip(BaseModel, Base):
     if storage_type == 'db':
         pickup_datetime = Column(DateTime, nullable=False)
         dropoff_datetime = Column(DateTime, nullable=False)
-        pickup_location = Column(Integer, ForeignKey('zone.id'), nullable=False)
-        dropoff_location = Column(Integer, ForeignKey('zone.id'), nullable=False)
+        pickup_location = Column(String(255), ForeignKey('zone.id'), nullable=False)
+        dropoff_location = Column(String(255), ForeignKey('zone.id'), nullable=False)
         trip_distance = Column(Float, default=0.0)
 
-        vehicle_id = Column(Integer, ForeignKey('vehicle.id'), nullable=False)
-        estimated_duration = Column(Integer, ForeignKey('prediction.id'), nullable=False)
+        vehicle_id = Column(String(255), ForeignKey('vehicle.id'), nullable=False)
+        estimated_duration = Column(String(255), ForeignKey('prediction.id'), nullable=False)
 
         # Relationships
         vehicle = relationship("Vehicle", back_populates="trips")

@@ -1,11 +1,12 @@
 #! /usr/bin/env python3
 """This module contains the DBStorage class"""
 from os import getenv
-from models.base.base_model_loc import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from geoalchemy2 import Geometry
 from dotenv import load_dotenv
+
+from models.base.base_model import Base
 
 load_dotenv()
 
@@ -54,6 +55,7 @@ class DBStorage:
 
     def save(self):
         """ This method commits all changes to the database """
+        print('------SAVING------')
         self.__session.commit()
 
     def execute(self, queries):
