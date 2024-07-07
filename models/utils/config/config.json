@@ -1,0 +1,10 @@
+{
+    "COLORS": {
+        "ERROR_COLOR": "\\033[91m",
+        "INFO_COLOR": "\\033[94m",
+        "WARNING_COLOR": "\\033[93m",
+        "SUCCESS_COLOR": "\\033[92m",
+        "END_COLOR": "\\033[0m",
+        "DEFAULT_COLOR": "\\033[39m"
+    }
+}

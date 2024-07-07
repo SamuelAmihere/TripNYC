@@ -77,7 +77,7 @@ def taxi_zone_lookup():
     filter_name = lambda id: zones1.get(id, None)
     
     boroughs_d = []
-    
+
 
     for borough in boroughs:
         borough = borough.to_dict()
@@ -99,6 +99,20 @@ def taxi_zone_lookup():
         zones.append(z.to_dict())
     
     return jsonify([zones2])
+
+# ----------------ML Model----------------
+@app.route('/ml_tracking', methods=['POST', 'GET'])
+def ml_tracking():
+    """ tracks ml model """
+    if request.method == 'POST':
+        data = request.get_json()
+        print(data)
+        return jsonify(data)
+    return jsonify({'error': 'Invalid request method'})
+
+
+
+
 
 @app.teardown_appcontext
 def teardown_db(exception):

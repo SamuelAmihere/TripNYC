@@ -1,0 +1,26 @@
+{
+    "MODEL1": {
+        "mlflow": {"exp_name": "my_experiment"},
+        "data_path": "path/to/your/data.csv",
+        "scalers": "StandardScaler()",
+        "model":"RandomForestClassifier()",
+        "param_grid": {
+            "model__n_estimators": [100, 200, 300],
+            "model__max_depth": [5, 10]
+        },
+        "cv": 5,
+        "scoring": "accuracy"
+    },
+    "MODEL2": {
+        "mlflow": {"exp_name": "my_experiment"},
+        "data_path": "path/to/your/data.csv",
+        "scalers": "StandardScaler()",
+        "model": "RandomForestClassifier()",
+        "param_grid": {
+            "model__n_estimators": [100, 200, 300],
+            "model__max_depth": [5, 10]
+        },
+        "cv": 5,
+        "scoring": "accuracy"
+    }
+}

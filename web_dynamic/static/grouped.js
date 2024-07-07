@@ -31,22 +31,6 @@ function load_Boroughs_loc_id() {
             console.error('Error in load_Boroughs_loc_id:', error);
             throw error; // re-throw to allow caller to handle
         });
-    
-
-
-    
-    
-    // const lup = 'Data/Taxi Zone Maps and Lookup Tables/taxi_zone_lookup.csv';
-    
-    // return d3.csv(lup).then(function(data) {
-    //     var boroughs = [];
-    //     data.forEach(function(d) {
-    //         if (d.Borough == borough) {
-    //             boroughs.push(d.LocationID);
-    //         }
-    //     });
-    //     return boroughs;
-    // });
 }
 
 function getBoroughs(svg_doc) {
