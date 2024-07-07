@@ -6,10 +6,17 @@
             "tags": {
                 "model": "RandomForestClassifier",
                 "version": "0.1.0",
-                "stage": "production",
+                "stage": "development",
                 "owner": "amisam2000@gmail.com",
                 "description": "This is a test run",
-                
+                "source": "models/train_model.py",
+                "run_origin": "local",
+                "env": "conda",
+                "conda_env": "conda_env.yaml",
+                "entry_point": "train_model",
+                "model_path": "os.path.join('models', 'model.pkl')",
+                "model_signature": "model.predict(data)",
+
             }
         },
         "data_path": "path/to/your/data.csv",
