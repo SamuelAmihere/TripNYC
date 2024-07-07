@@ -8,35 +8,35 @@
         body {
             margin: 0;
             padding: 0;
-            /* background: #545151; */
+            background: #cecbcb;
             display: flex;
             /* justify-content: center; */
             /* align-items: center; */
             height: 100vh;
         }
         #map-container {
-            /* width: 50%; */
+            width: 60%;
             height: 400px;
-            overflow: auto;
+            position: relative;
+
             float: left;
             justify-content: center;
             scroll-snap-align: start;
-            border: #d11c1c 2px solid;
+            border: #184c13 1px solid;
             background-color: black;
-            border-radius: 10px;
             margin-top: auto;
             margin-bottom: auto;
             margin-left: 5px;
-            left: 10px;
+            /* left: 10px; */
 
 
         }
         #svg-object {
-            width: 110%;
-            height: 120%;
+            width: 150%;
+            height: 130%;
             padding: auto;
             margin: 0;
-            /* display: block; */
+            transition: transform 0.5s ease;
 
         }
         #right-pane {
@@ -56,13 +56,13 @@
         #right-container, #right-pane {
             /* width: 50%; */
             height: 400px;
-            overflow: auto;
+            overflow: hidden;
             justify-content: center;
-            border-radius: 10px;
             margin-top: auto;
             margin-bottom: auto;
             margin-right: 5px;
             right: 10px;
+            
         }
 
         #right-container{
@@ -71,18 +71,27 @@
             overflow: auto;
             justify-content: center;
             scroll-snap-align: start;
-            border-radius: 10px;
             margin-top: auto;
             margin-bottom: auto;
             margin-right: 5px;
             right: 10px;
+            border-top: #7e3737 2px solid;
+            border-top-style: ridge;
+        }
+        #map-container, #right-container {
+            display: inline-block;
+            vertical-align: top;
+            overflow: scroll;
+            scrollbar-width: thin;
+            scroll-behavior: smooth;
+            scrollbar-gutter: auto;
         }
 
     </style>
 </head>
 <body>
     <div id="map-container">
-        <object id="svg-object" type="image/svg+xml" data="{{ url_for('static', filename='nyc_taxi_zones_grouped.svg') }}" width="90%" height="80%">
+        <object id="svg-object" type="image/svg+xml" data="{{ url_for('static', filename='nyc_taxi_zones_grouped.svg') }}">
             Your browser does not support SVG
         </object>
     </div>
@@ -106,14 +115,52 @@
         </div>
     </div>
 
-
-
-
-
-
-
-
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="{{ url_for('static', filename='../static/grouped.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('map-container');
+            const content = document.getElementById('svg-object');
+    
+            let zoom = 4;
+            const ZOOM_SPEED = 0.4;
+            let isDragging = true;
+            let startX, startY, translateX = 0, translateY = 0;
+    
+            container.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                let delta = e.deltaY > 0 ? -1 : 1;
+                zoom += delta * ZOOM_SPEED;
+                zoom = Math.min(Math.max(1, zoom), 3);  // Restrict zoom level between 1x and 3x
+                updateTransform();
+            });
+    
+            container.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+            });
+    
+            container.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    translateX = e.clientX - startX;
+                    translateY = e.clientY - startY;
+                    updateTransform();
+                }
+            });
+    
+            container.addEventListener('mouseup', function() {
+                isDragging = false;
+            });
+    
+            container.addEventListener('mouseleave', function() {
+                isDragging = false;
+            });
+    
+            function updateTransform() {
+                content.style.transform = `scale($${zoom}) translate($${translateX}px, ${translateY}px)`;
+            }
+        });
+    </script>
 </body>
 </html>

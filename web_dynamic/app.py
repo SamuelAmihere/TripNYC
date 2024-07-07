@@ -71,7 +71,7 @@ def taxi_zone_lookup():
     
     zones1 = {i.id: i.name for i in zones}
     zones2 = {i.id: [i.to_dict().get('name'), i.to_dict().get('locationID')] for i in zones}
-    print(zones2.values())
+    # print(zones2.values())
     
     # get data by id
     filter_name = lambda id: zones1.get(id, None)
@@ -94,8 +94,8 @@ def taxi_zone_lookup():
     for z in zones:
         z = z.to_dict()
         # z.update({'borough': filter_name(z.get('borough'))})
-        print('--------------------')
-        print(z.keys())
+        # print('--------------------')
+        # print(z.keys())
         zones.append(z.to_dict())
     
     return jsonify([zones2])

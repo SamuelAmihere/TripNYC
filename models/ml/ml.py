@@ -44,6 +44,7 @@ class ML(BaseModel, Base):
         version = Column(String(255), nullable=False)
         description = Column(String(255), default="")
         performance_metrics = Column(JSONB, nullable=False)
+        model_path = Column(String(255), nullable=False)
         predictions = relationship("Prediction", back_populates="ml")
 
     else:
@@ -51,6 +52,7 @@ class ML(BaseModel, Base):
         version = ""
         description = ""
         model = ""
+        model_path = ""
         predictions = []
 
         @property
