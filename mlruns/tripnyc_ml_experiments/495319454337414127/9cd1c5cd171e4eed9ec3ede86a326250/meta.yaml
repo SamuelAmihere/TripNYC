@@ -1,0 +1,15 @@
+artifact_uri: file:///E:/amihere/programmingLessons/ALX-Backend/FINAL PROJECT/TripNYC/mlruns/tripnyc_ml_experiments/495319454337414127/9cd1c5cd171e4eed9ec3ede86a326250/artifacts
+end_time: 1720381017831
+entry_point_name: ''
+experiment_id: '495319454337414127'
+lifecycle_stage: active
+run_id: 9cd1c5cd171e4eed9ec3ede86a326250
+run_name: worried-fly-183
+run_uuid: 9cd1c5cd171e4eed9ec3ede86a326250
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1720381017778
+status: 3
+tags: []
+user_id: lenovo

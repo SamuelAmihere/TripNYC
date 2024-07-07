@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     # Load configuration
     
-    config = load_config(CONFIG_PATH)['MODEL1']
+    config = load_config(CONFIG_PATH)['FARE_AMOUNT-MODEL1']
     config.update({k: eval(v) if (k == 'scalers' or k=='model') \
                    else v  for k, v in config.items()})
 

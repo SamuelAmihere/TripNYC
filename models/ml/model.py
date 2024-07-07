@@ -78,24 +78,166 @@ class TrainModel(TrainingSetUp):
         logging.info(get_msg(f"Trainer [{trainer}] initialized", "SUCCESS"))
 
     def setup_mlflow(self):
+        '''
+        Sets up MLflow tracking server
+        '''
+        import GPUtil
+
+        # TAGS: GPU
+        gpus = GPUtil.getGPUs()
+        try:
+            gpu = gpus[0]
+        except IndexError:
+            gpu = None       
+        if gpu:
+            logging.info(get_msg(f"GPU found. Using [{gpu.name}]", "INFO"))
+            gpuName = gpus.name
+            memTotal = gpus.memoryTotal
+            memUsed =  f'{gpu.memoryUtil * memTotal / 100}%'
+            mlflow.set_tag('gpu.name', f'{gpuName}')
+            mlflow.set_tag('gpu.memory_total', f'{memTotal}')
+            mlflow.set_tag('gpu.memory_used', f'{memUsed}')
+        else:
+            mlflow.set_tag('cpu', 'True')
+            # use CPU
+            logging.info(get_msg("No GPU found. Using CPU", "WARNING"))
+
         logging.info(get_msg("Setting up MLflow", "INFO"))
+
+        # TAGS: ENV
+        env_tags = self.mlflow_info.get('env-tags')
+        if env_tags:
+            conda_env = env_tags.get('conda_env') # .yml file
+            if conda_env:
+                mlflow.set_env(conda_env)
+            source = env_tags.get('source')
+            if source:
+                mlflow.set_source(source)
+            user = env_tags.get('user')
+            if user:
+                mlflow.set_user(eval(user))
+            os_name = env_tags.get('os')
+            if os_name:
+                mlflow.set_tag('os', eval(os_name))
+            py_version = env_tags.get('python_version')
+            if py_version:
+                from sys import platform
+                mlflow.set_tag('python_version', eval(py_version))
+            mlflow_version = env_tags.get('mlflow_version')
+            if mlflow_version:
+                mlflow.set_tag('mlflow_version', eval(mlflow_version))
+
+        # TAGS: MODEL
+        model_tags = self.mlflow_info.get('model-tags')
+        if model_tags:
+            ml_model = model_tags.get('model')
+            if ml_model:
+                if ml_model == 'RandomForestClassifier':
+                    from sklearn.ensemble import RandomForestClassifier
+                if ml_model == 'RandomForestRegressor':
+                    from sklearn.ensemble import RandomForestRegressor
+                if ml_model == 'RandomForest':
+                    from sklearn.ensemble import RandomForestClassifier
+                    from sklearn.ensemble import RandomForestRegressor
+                if ml_model == 'SVC':
+                    from sklearn.svm import SVC
+                if ml_model == 'LogisticRegression':
+                    from sklearn.linear_model import LogisticRegression
+                if ml_model == 'LinearRegression':
+                    from sklearn.linear_model import LinearRegression
+                if ml_model == 'KNeighborsClassifier':
+                    from sklearn.neighbors import KNeighborsClassifier
+                if ml_model == 'KNeighborsRegressor':
+                    from sklearn.neighbors import KNeighborsRegressor
+                if ml_model == 'DecisionTreeClassifier':
+                    from sklearn.tree import DecisionTreeClassifier
+                if ml_model == 'DecisionTreeRegressor':
+                    from sklearn.tree import DecisionTreeRegressor
+                if ml_model == 'GradientBoostingClassifier':
+                    from sklearn.ensemble import GradientBoostingClassifier
+                if ml_model == 'GradientBoostingRegressor':
+                    from sklearn.ensemble import GradientBoostingRegressor
+                if ml_model == 'AdaBoostClassifier':
+                    from sklearn.ensemble import AdaBoostClassifier
+                if ml_model == 'AdaBoostRegressor':
+                    from sklearn.ensemble import AdaBoostRegressor
+                if ml_model == 'XGBClassifier':
+                    from xgboost import XGBClassifier
+                if ml_model == 'XGBRegressor':
+                    from xgboost import XGBRegressor
+                # initialize the specified model
+                self.model = eval(ml_model)
+                mlflow.set_tag('model_name', ml_model)
+                model_source = model_tags.get('source')
+                if model_source:
+                    mlflow.set_tag('model_source', model_source)
+                model_path = model_tags.get('model_path')
+                if model_path:
+                    mlflow.set_tag('model_path', model_path)
+                model_size = model_tags.get('model_size')
+                if model_size and model_path:
+                    model_path = eval(model_path)
+                    mlflow.set_tag('model_size', model_size)
+            else:
+                logging.error(get_msg("Model not defined", "ERROR"))
+                raise AttributeError('Model not defined')
+        else:
+            logging.error(get_msg("Model tags not defined. \
+                                  \nCheck models\utils\config\ml_config.json",
+                                  "ERROR"))
+            raise AttributeError('Model tags not defined')
+
+        # TAGS: Experimament
+        experiment_tags = self.mlflow_info.get('experiment-tags')
+        if experiment_tags:
+            exp_name = experiment_tags.get('experiment_name', f'mlflow_{self.id}')
+            if exp_name:
+                mlflow.set_tag('experiment_name', exp_name)
+                mlflow.set_experiment(exp_name)
+            exp_description = experiment_tags.get('experiment_description')
+            if exp_description:
+                mlflow.set_tag('experiment_description', exp_description)
+            exp_id = experiment_tags.get('experiment_id')
+        
         exp_name = self.mlflow_info.get('exp_name', f'mlflow_{self.id}')
         artifact_uri = self.mlflow_info.get('artifact_uri')
-
+        model_path = self.mlflow_info\
+            .get('model-tags')\
+                .get('model_path')
+        
+        
+        
+        model_path = eval(model_path) if model_path else None
         os.makedirs("./mlruns", exist_ok=True)
         tracking_uri = os.getenv('MLFLOW_TRACKING_URI_TRAIN', f'./mlruns/{exp_name}')
         mlflow.set_tracking_uri(tracking_uri)
-        mlflow.set_experiment(exp_name)
 
         if artifact_uri:
             mlflow.set_artifact_uri(artifact_uri)
         logging.info(get_msg(f"MLflow setup complete. Experiment: {exp_name}", "SUCCESS"))
 
     def train(self):
+        '''
+        Trains the model
+        '''
+        import psutil
+        import time
+
         logging.info(get_msg("Starting model training", "INFO"))
         with mlflow.start_run():
-            self.create_pipeline()
+            # TAGS: CPU
+            while True:
+                memUtil = psutil.virtual_memory().percent
+                mlflow.log_metric('memory_utilization', memUtil, step=0)
+                time.sleep(10)
+                if memUtil > 90:
+                    logging.warning(get_msg(f"Memory usage is {memUtil}%. picking cpu", "WARNING"))
+                    mlflow.set_tag('cpu', 'True')
+                    break
             
+            # Create pipeline for training
+            self.create_pipeline()
+
             if not all(hasattr(self, attr) for attr in ['param_grid', 'cv', 'scoring']):
                 logging.error(get_msg("param_grid, cv, and scoring must be defined", "ERROR"))
                 raise AttributeError('param_grid, cv, and scoring must be defined')
