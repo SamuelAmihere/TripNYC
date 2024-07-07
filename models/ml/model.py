@@ -74,7 +74,8 @@ class TrainModel(TrainingSetUp):
         super().__init__(**kwargs)
         self.mlflow_info = kwargs.get('mlflow', {})
         self.setup_mlflow()
-        logging.info(get_msg("TrainModel initialized", "SUCCESS"))
+        trainer = self.__dict__.get('id')
+        logging.info(get_msg(f"Trainer [{trainer}] initialized", "SUCCESS"))
 
     def setup_mlflow(self):
         logging.info(get_msg("Setting up MLflow", "INFO"))
@@ -160,10 +161,8 @@ class TrainModel(TrainingSetUp):
                 raise Exception("Model has not been trained yet")
             mlflow.sklearn.save_model(self.model, path)
             logging.info(get_msg("Model saved successfully", "SUCCESS"))
-            
-
 
     def load_model(self, path):
-        logging.info(f"Loading model from {path}")
+        logging.info(get_msg(f"Loading model from {path}", "INFO"))
         self.model = mlflow.sklearn.load_model(path)
-        logging.info("Model loaded successfully")
+        logging.info(get_msg("Model loaded successfully", "SUCCESS"))

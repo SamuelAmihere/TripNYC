@@ -1,6 +1,17 @@
 {
     "MODEL1": {
-        "mlflow": {"exp_name": "my_experiment"},
+        "mlflow": {
+            "exp_name": "my_experiment",
+            "run_name": "my_run",
+            "tags": {
+                "model": "RandomForestClassifier",
+                "version": "0.1.0",
+                "stage": "production",
+                "owner": "amisam2000@gmail.com",
+                "description": "This is a test run",
+                
+            }
+        },
         "data_path": "path/to/your/data.csv",
         "scalers": "StandardScaler()",
         "model":"RandomForestClassifier()",
