@@ -1,17 +1,16 @@
 {
     "FARE_AMOUNT-MODEL1": {
         "mlflow": {
-            "run_name": "my_run",
-            "artifact_location": "mlruns",
             "data-tags": {
                 "data_version": "v0.1.0",
-                "data_path": "path/to/your/data.csv",
+                "data_path": "path/to/data.csv",
                 "data_source": "NYC_yellow_taxi",
                 "data_origin": "https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page",
                 "data_size": "str(len(self.X))",
                 "data_shape": "self.X.shape",
                 "features": "self.X.columns.tolist()",
-                "feature_count": "str(X.shape[1])"
+                "feature_count": "str(X.shape[1])",
+                "target_variable": "fare_amount"
             },
             "env-tags": {
                 "conda_env": "conda_env.yaml",
@@ -24,21 +23,26 @@
             },
             "model-tags": {
                 "model": "RandomForestClassifier",
+                "model_name": "fare_amount_model1",
+                "model_type": "classification",
                 "version": "0.1.0",
-                "stage": "development",
-                "description": "This is a test run",
                 "source": "models/train_model.py",
-                "run_origin": "local",
-                "model_path": "models/ml/model/model.pkl",
-                "model_size": "f\"{os.path.getsize(model_path)}\""
+                "model_size": "f\"{os.path.getsize(model_path)}\"",
+                "artifact_path": "os.environ.get('MLFLOW_TRACKING_URI')"
             },
             "experiment-tags": {
                 "experiment_name": "tripnyc_ml_experiments",
-                "experiment_id": "mlflow.create_experiment(experiment_name)",
-                "experiment_description": "This is a test run",
+                "experiment_id": "self.id",
+                "experiment_description": "This is a test run for the NYC taxi fare prediction model",
+                "tracking_uri": "os.environ.get('MLFLOW_TRACKING_URI')",
                 "experiment_owner": "amisam2000@gmail.com",
                 "run_type": "full_training",
-                "target_variable": "fare_amount",
+                "run": {
+                    "run_origin": "local",
+                    "run_name": "self.run_name",
+                    "run_id": "self.run_id",
+                    "run_time": "datetime.now().strftime('%Y-%m-%d %H:%M:%S')",
+                },
                 "model-experiment": {
                     "cv": 5,
                     "scoring": "accuracy",

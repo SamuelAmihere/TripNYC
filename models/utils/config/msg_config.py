@@ -1,18 +1,19 @@
 
 from models.utils.model_func import process_color_codes
 
-CONFIG_PATH = 'models/utils/config/config.json'
-config = process_color_codes(CONFIG_PATH)
-ERROR_COLOR = config.get('ERROR_COLOR')
-SUCCESS_COLOR = config.get('SUCCESS_COLOR')
-INFO_COLOR = config.get('INFO_COLOR')
-WARNING_COLOR = config.get('WARNING_COLOR')
-END_COLOR = config.get('END_COLOR')
-DEFAULT_COLOR = config.get('DEFAULT_COLOR')
+CONFIG_PATH_COLOR = 'models/utils/config/config.json'
 
 
 def get_msg(msg: str, hint: str = None):
     """Prepares logging message"""
+    config = process_color_codes(CONFIG_PATH_COLOR)
+    ERROR_COLOR = config.get('ERROR_COLOR')
+    SUCCESS_COLOR = config.get('SUCCESS_COLOR')
+    INFO_COLOR = config.get('INFO_COLOR')
+    WARNING_COLOR = config.get('WARNING_COLOR')
+    END_COLOR = config.get('END_COLOR')
+    DEFAULT_COLOR = config.get('DEFAULT_COLOR')
+
     if hint == 'ERROR':
         return f"{ERROR_COLOR}{msg}{DEFAULT_COLOR}"
     elif hint == 'SUCCESS':

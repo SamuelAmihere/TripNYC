@@ -85,6 +85,8 @@ def update_value(caller, cls, attr, value, jsonb, **kwargs)->dict:
 def load_config(config_path):
     import json
     with open(config_path) as f:
+        print(f"============{json.load(f)}=============")
+        print(config_path)
         config = json.load(f)
     return config
 
