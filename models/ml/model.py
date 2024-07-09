@@ -3,7 +3,6 @@
 import os
 import sys
 import platform
-import threading
 
 import mlflow
 from models.utils.config.mlflow_conf import log_memory_utilization
@@ -23,6 +22,9 @@ from models.utils.config.msg_config import get_msg
  
 import psutil
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class TrainingSetUp:
@@ -40,14 +42,12 @@ class TrainingSetUp:
         if kwargs:
             for key, value in kwargs.items():
                 setattr(self, key, value)
-
         self.X_train = self.X_test = self.y_train = self.y_test = None
         self.y_pred = self.y_pred_proba = None
         self.pipeline = None
         self.param_grid = None
         self.settings = None
-        self.run_id = None
-        self.tracking_uri = None
+
         
         logging.info(get_msg('TrainingSetUp initialized', 'SUCCESS'))
 
@@ -110,30 +110,6 @@ class TrainModel(TrainingSetUp):
         '''
         Sets up MLflow tracking server
         '''
-        import GPUtil
-
-        # TAGS: DATA
-        data_tags = self.data_info.get('data-tags')
-
-        # TAGS: GPU
-        gpus = GPUtil.getGPUs()
-        try:
-            gpu = gpus[0]
-        except IndexError:
-            gpu = None       
-        if gpu:
-            logging.info(get_msg(f"GPU found. Using [{gpu.name}]", "INFO"))
-            gpuName = gpu.name
-            memTotal = gpu.memoryTotal
-            memUsed =  f'{gpu.memoryUtil * memTotal / 100}%'
-            mlflow.set_tag('gpu.name', f'{gpuName}')
-            mlflow.set_tag('gpu.memory_total', f'{memTotal}')
-            mlflow.set_tag('gpu.memory_used', f'{memUsed}')
-        else:
-            mlflow.set_tag('cpu', 'True')
-            # use CPU
-            logging.info(get_msg("No GPU found. Using CPU", "WARNING"))
-
         logging.info(get_msg("Setting up MLflow", "INFO"))
 
         # TAGS: ENV
@@ -196,15 +172,6 @@ class TrainModel(TrainingSetUp):
                 model_source = model_tags.get('source')
                 if model_source:
                     mlflow.set_tag('model_source', model_source)
-                artifact_path = model_tags.get(artifact_path)
-                if artifact_path:
-                    mlflow.set_tag('model_path', eval(model_path))
-                    self.model_path = eval(model_path)
-                model_size = model_tags.get('model_size')
-                if model_size and model_path:
-                    model_path = eval(model_path)
-                    mlflow.set_tag('model_size', model_size)
-                
             else:
                 logging.error(get_msg("Model not defined", "ERROR"))
                 raise AttributeError('Model not defined')
@@ -216,39 +183,22 @@ class TrainModel(TrainingSetUp):
 
         #  =============EXPERIMENT================
         # TAGS: Experimament
-        experiment_tags = self.mlflow_info.get('experiment-tags')
-        if experiment_tags:
-            # exp_name = experiment_tags.get('experiment_name')
-            # if exp_name:
-            #     mlflow.set_experiment(exp_name)
-            # experiment_id = experiment_tags.get('experiment_id')
-            # if experiment_id:
-            #     mlflow.set_tag('experiment_id', eval(experiment_id))
-            # exp_description = experiment_tags.get('experiment_description')
-            # if exp_description:
-            #     mlflow.set_tag('experiment_description', exp_description)
-            tracking_uri = experiment_tags.get('tracking_uri')
-            if tracking_uri:
-                if 'local' in mlflow.get_tags():
-                    os.makedirs(tracking_uri, exist_ok=True)
-                mlflow.set_tracking_uri(tracking_uri)
-                self.tracking_uri = tracking_uri
-
-            # runs:
-            runs = experiment_tags.get('run')
-            if runs:
-                run_origin = runs.get('origin')
-                if run_origin:
-                    mlflow.set_tag('run_origin', run_origin)
-                run_name = runs.get('name')
-                if run_name and self.get('run_name'):
-                    try:
-                        mlflow.set_tag('run_name', eval(run_name))
-                    except NameError:
-                        raise NameError(f"NameError: {run_name.split('.')[-1]} is not defined")
-                run_id = runs.get('id')
-                if run_id:
-                     run_id = eval(run_id)
+        # runs:
+        experiment_tags = self.mlflow_info.get('experiment_tags')
+        runs = experiment_tags.get('run')
+        if runs:
+            run_origin = runs.get('origin')
+            if run_origin:
+                mlflow.set_tag('run_origin', run_origin)
+            run_name = runs.get('name')
+            if run_name and self.get('run_name'):
+                try:
+                    mlflow.set_tag('run_name', eval(run_name))
+                except NameError:
+                    raise NameError(f"NameError: {run_name.split('.')[-1]} is not defined")
+            run_id = runs.get('id')
+            if run_id:
+                    run_id = eval(run_id)
 
 
             # =====model-experiment=====:
@@ -311,7 +261,7 @@ class TrainModel(TrainingSetUp):
                 self.settings = sett
             #============================================
 
-        logging.info(get_msg(f"MLflow setup complete. Experiment: {self.exp_name}", "SUCCESS"))
+        logging.info(get_msg(f"MLflow setup complete. Experiment: {experiment_tags.get('exp_name')}", "SUCCESS"))
 
     def train(self):
         '''
@@ -321,7 +271,7 @@ class TrainModel(TrainingSetUp):
             # |------------------|        Start MLflow run              |---------------|
             # |-------------------------------------------------------------------------|
         with mlflow.start_run(experiment_id="{}".format( self.exp_id), 
-                              run_name="{}".self.experiment_id) as run:
+                              run_name="{}".self.id) as run:
 
             # Create pipeline for training
             self.create_pipeline()
