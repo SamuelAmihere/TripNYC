@@ -13,13 +13,11 @@
                 "target_variable": "fare_amount"
             },
             "env-tags": {
-                "conda_env": "conda_env.yaml",
                 "entry_point": "train_model",
-                "source": "models/ml/train_model.py",
-                "user": "getpass.getuser()",
                 "os": "platform.system()",
                 "python_version": "platform.python_version()",
-                "mlflow_version": "mlflow.__version__"
+                "mlflow_version": "mlflow.__version__",
+                "train_env": "local"
             },
             "model-tags": {
                 "model": "RandomForestClassifier",
@@ -32,27 +30,139 @@
             },
             "experiment-tags": {
                 "experiment_name": "tripnyc_ml_experiments",
-                "experiment_id": "self.id",
+                "experiment_id": "self.exp_id",
                 "experiment_description": "This is a test run for the NYC taxi fare prediction model",
                 "tracking_uri": "os.environ.get('MLFLOW_TRACKING_URI')",
                 "experiment_owner": "amisam2000@gmail.com",
                 "run_type": "full_training",
                 "run": {
                     "run_origin": "local",
-                    "run_name": "self.run_name",
-                    "run_id": "self.run_id",
-                    "run_time": "datetime.now().strftime('%Y-%m-%d %H:%M:%S')",
+                    "run_name": "self.id",
+                    "run_id": "self.run_id"
                 },
                 "model-experiment": {
-                    "cv": 5,
-                    "scoring": "accuracy",
+                    "pipeline": {
+                        "model": "RandomForestClassifier()",
+                        "scaler": "StandardScaler()"
+                    },
                     "param_grid": {
                         "model__n_estimators": [100, 200, 300],
                         "model__max_depth": [5, 10]
                     },
-                    "model": "RandomForestClassifier()",
-                    "scalers": "StandardScaler()"
+                    "settings": {
+                        "cv": 5,
+                        "n_jobs": -1,
+                        "verbose": 1
+                    }
                 }
+            }
+        }
+    },
+    "DATA_PATH":  {
+        "BASE_PATH": "models/ml/Data",
+        "yellow": {
+            "all": "yellow_tripdata_all.csv",
+            "2024": {
+                "01": "yellow_tripdata_2024-01.csv",
+                "02": "yellow_tripdata_2024-02.csv",
+                "03": "yellow_tripdata_2024-03.csv",
+                "04": "yellow_tripdata_2024-04.csv"
+            },
+            "2023": {
+                "01": "yellow_tripdata_2025-01.csv",
+                "02": "yellow_tripdata_2025-02.csv",
+                "03": "yellow_tripdata_2025-03.csv",
+                "04": "yellow_tripdata_2025-04.csv",
+                "05": "yellow_tripdata_2025-05.csv",
+                "06": "yellow_tripdata_2025-06.csv"
+            },
+            "2022": {
+                "01": "yellow_tripdata_2026-01.csv",
+                "02": "yellow_tripdata_2026-02.csv",
+                "03": "yellow_tripdata_2026-03.csv",
+                "04": "yellow_tripdata_2026-04.csv",
+                "05": "yellow_tripdata_2026-05.csv",
+                "06": "yellow_tripdata_2026-06.csv"
+            },
+            "2021": {
+                "01": "yellow_tripdata_2027-01.csv",
+                "02": "yellow_tripdata_2027-02.csv",
+                "03": "yellow_tripdata_2027-03.csv",
+                "04": "yellow_tripdata_2027-04.csv",
+                "05": "yellow_tripdata_2027-05.csv",
+                "06": "yellow_tripdata_2027-06.csv"
+            },
+            "2020": {
+                "01": "yellow_tripdata_2028-01.csv",
+                "02": "yellow_tripdata_2028-02.csv",
+                "03": "yellow_tripdata_2028-03.csv",
+                "04": "yellow_tripdata_2028-04.csv",
+                "05": "yellow_tripdata_2028-05.csv",
+                "06": "yellow_tripdata_2028-06.csv"
+            }
+        },
+        "green": {
+            "2024": {
+                "01": "green_tripdata_2024-01.csv",
+                "02": "green_tripdata_2024-02.csv",
+                "03": "green_tripdata_2024-03.csv",
+                "04": "green_tripdata_2024-04.csv"
+            },
+            "2023": {
+                "01": "green_tripdata_2025-01.csv",
+                "02": "green_tripdata_2025-02.csv",
+                "03": "green_tripdata_2025-03.csv",
+                "04": "green_tripdata_2025-04.csv",
+                "05": "green_tripdata_2025-05.csv",
+                "06": "green_tripdata_2025-06.csv"
+            },
+            "2022": {
+                "01": "green_tripdata_2026-01.csv",
+                "02": "green_tripdata_2026-02.csv",
+                "03": "green_tripdata_2026-03.csv",
+                "04": "green_tripdata_2026-04.csv",
+                "05": "green_tripdata_2026-05.csv",
+                "06": "green_tripdata_2026-06.csv"
+            },
+            "2021": {
+                "01": "green_tripdata_2027-01.csv",
+                "02": "green_tripdata_2027-02.csv",
+                "03": "green_tripdata_2027-03.csv",
+                "04": "green_tripdata_2027-04.csv",
+                "05": "green_tripdata_2027-05.csv",
+                "06": "green_tripdata_2027-06.csv"
+            },
+            "2020": {
+                "01": "green_tripdata_2028-01.csv",
+                "02": "green_tripdata_2028-02.csv",
+                "03": "green_tripdata_2028-03.csv",
+                "04": "green_tripdata_2028-04.csv",
+                "05": "green_tripdata_2028-05.csv",
+                "06": "green_tripdata_2028-06.csv"
+            }
+        },
+        "fhv": {
+            "2024": {
+                "01": "fhv_tripdata_2024-01.csv",
+                "02": "fhv_tripdata_2024-02.csv",
+                "03": "fhv_tripdata_2024-03.csv",
+                "04": "fhv_tripdata_2024-04.csv"
+            },
+            "2023": {
+                "01": "fhv_tripdata_2025-01.csv",
+                "02": "fhv_tripdata_2025-02.csv",
+                "03": "fhv_tripdata_2025-03.csv",
+                "04": "fhv_tripdata_2025-04.csv",
+                "05": "fhv_tripdata_2025-05.csv",
+                "06": "fhv_tripdata_2025-06.csv"
+            },
+            "2022": {
+                "01": "fhv_tripdata_2026-01.csv",
+                "02": "fhv_tripdata_2026-02.csv",
+                "03": "fhv_tripdata_2026-03.csv",
+                "04": "fhv_tripdata_2026-04.csv",
+                "05": "fhv_tripdata_2026-05.csv",
+                "06": "fhv_tripdata_2026-06.csv"
             }
         }
     }

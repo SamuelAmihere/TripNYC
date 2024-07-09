@@ -85,9 +85,10 @@ def update_value(caller, cls, attr, value, jsonb, **kwargs)->dict:
 def load_config(config_path):
     import json
     with open(config_path) as f:
-        print(f"============{json.load(f)}=============")
-        print(config_path)
-        config = json.load(f)
+        try:
+            config = json.load(f)
+        except json.decoder.JSONDecodeError as e:
+            config = {}
     return config
 
 def process_color_codes(CONFIG_PATH):
