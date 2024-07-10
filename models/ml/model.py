@@ -129,7 +129,7 @@ class TrainModel(TrainingSetUp):
                 mlflow.set_tag('train_env', eval(train_env))
 
         # TAGS: MODEL
-        model_tags = self.mlflow_info.get('model-tags')
+        model_tags = self.mlflow_info.get('model_tags')
         if model_tags:
             ml_model = model_tags.get('model')
             if ml_model:

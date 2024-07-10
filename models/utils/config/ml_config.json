@@ -1,7 +1,7 @@
 {
     "FARE_AMOUNT-MODEL1": {
         "mlflow": {
-            "data-tags": {
+            "data_tags": {
                 "data_version": "v0.1.0",
                 "data_path": "path/to/data.csv",
                 "data_source": "NYC_yellow_taxi",
@@ -12,21 +12,20 @@
                 "feature_count": "str(X.shape[1])",
                 "target_variable": "fare_amount"
             },
-            "env-tags": {
+            "env_tags": {
                 "entry_point": "train_model",
                 "os": "platform.system()",
                 "python_version": "platform.python_version()",
                 "mlflow_version": "mlflow.__version__",
                 "train_env": "locals"
             },
-            "model-tags": {
+            "model_tags": {
                 "model": "RandomForestClassifier",
                 "model_name": "fare_amount_model1",
                 "model_type": "classification",
                 "version": "0.1.0",
                 "source": "models/train_model.py",
-                "model_size": "f\"{os.path.getsize(model_path)}\"",
-                "artifact_path": "os.environ.get('MLFLOW_TRACKING_URI')"
+                "model_size": "f\"{os.path.getsize(model_path)}\""
             },
             "experiment_tags": {
                 "experiment_name": "tripnyc_ml_experiments",
@@ -40,7 +39,7 @@
                     "run_name": "self.id",
                     "run_id": "self.run_id"
                 },
-                "model-experiment": {
+                "model_experiment": {
                     "pipeline": {
                         "model": "RandomForestClassifier()",
                         "scaler": "StandardScaler()"
@@ -59,7 +58,8 @@
         },
         "DATA_PATH":  {
             "yellow": {
-                "path": "models/ml/Data/yellow/yellow_tripdata_all.csv"
+                "path": "models/ml/Data/yellow/yellow_tripdata_all.csv",
+                "description": "models/ml/utils/config/feat_target.json"
             }
         }
     }
