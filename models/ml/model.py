@@ -5,12 +5,25 @@ import sys
 import platform
 
 import mlflow
+from mlflow import log_metric, log_param, log_artifacts
+from mlflow.sklearn import log_model
+from mlflow.tracking import MlflowClient
+from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID
+from mlflow.utils.logging_utils import eprint
+from mlflow.utils.file_utils import TempDir
+from mlflow.utils.validation import MAX_METRICS_PER_BATCH
+from mlflow.utils.validation import MAX_PARAM_VAL_LENGTH
+from mlflow.utils.validation import MAX_PARAMS_TAGS_PER_BATCH
+from mlflow.utils.validation import MAX_ENTITY_KEY_LENGTH
+from mlflow.utils.validation import MAX_TAG_VAL_LENGTH
+
 from models.utils.config.mlflow_conf import log_memory_utilization
 
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score, mean_squared_error, precision_score, recall_score
 
 import pandas as pd
 from datetime import datetime
@@ -47,17 +60,43 @@ class TrainingSetUp:
         self.pipeline = None
         self.param_grid = None
         self.settings = None
+        self.model = None
 
         
         logging.info(get_msg('TrainingSetUp initialized', 'SUCCESS'))
 
-    def load_data(self, data_path):
-        logging.info(get_msg(f'Loading data from {data_path}', 'INFO'))
+    def load_data(self):
+        logging.info(get_msg(f'Loading data ....', 'INFO'))
+        
         try:
-            self.data = pd.read_csv(data_path)
-            self.X = self.data.drop('target', axis=1)
-            self.y = self.data['target']
-            logging.info(get_msg(f"Data loaded. Shape: {self.data.shape}", 'SUCCESS'))
+            path = self.mlflow_info.get("data_tags")
+            datapath = path.get("data_path") if path else None
+            descpath = path.get("description") if path else None
+            if not datapath or not descpath:
+                logging.error(get_msg("Error: Check {} and descr: {e}"
+                                      .format(
+                                          i[1] for i in [(datapath,'[data path] '),
+                                                         (descpath,'[data descriptions] ')
+                                                         ] if i[0]),
+                                                         'ERROR'))
+            self.data = pd.read_csv(datapath) if datapath else None
+            self.features_target = descpath if datapath else None
+            
+            if not self.data.empty and self.features_target:
+                # Convert categorical variables to numerical values           
+                num_feat = self.data.select_dtypes(include=['float64', 'int64']).columns
+                cat_feat = self.data.drop(num_feat, axis=1).columns
+                # Convert categorical variables to numerical values
+                for col in cat_feat:
+                    self.data[col] = self.data[col].astype('category')
+                self.data = pd.get_dummies(self.data, columns=cat_feat)
+
+                # Sepapare X, and y
+                self.X = self.data.drop(self.features_target.get('target'), axis=1)
+                self.y = self.data[self.features_target.get('target')]
+                logging.info(get_msg(f"Data loaded. Shape: {self.X.shape}, {self.y.shape}", 'SUCCESS'))
+            else:
+                logging.error(get_msg(f"Error loading data and its features: {e}", 'ERROR'))
         except FileNotFoundError as e:
             logging.error(get_msg(f"Error loading data: {e}", 'ERROR'))
             raise FileNotFoundError(f"Error loading data: {e}")
@@ -72,15 +111,18 @@ class TrainingSetUp:
         '''
         Creates a pipeline for training
         '''
-        if hasattr(self, 'pipeline'):
+        if hasattr(self, 'pipeline') and self.pipeline is not None:
             logging.info(get_msg("Pipeline ready for creation", "INFO"))
-
-            self.pipeline = make_pipeline([(k, v) for k, v in self.pipeline.items() if v is not None])
+            # print("======", [(k, v) for k, v in self.pipeline if v is not None])
+            self.pipeline = Pipeline([(k, v) for k, v in self.pipeline if v is not None])
             if self.pipeline:
                 logging.info(get_msg("Pipeline created successfully", "SUCCESS"))
             else:
                 logging.error(get_msg("Pipeline not created", "ERROR"))
                 raise AttributeError('Pipeline not created')
+        else:
+            logging.error(get_msg("Pipeline not defined", "ERROR"))
+            raise AttributeError('Pipeline not defined')
     def create_params(self):
         '''
         Creates parameters for training
@@ -167,11 +209,7 @@ class TrainModel(TrainingSetUp):
                 if ml_model == 'XGBRegressor':
                     from xgboost import XGBRegressor
                 # initialize the specified model
-                self.model = eval(ml_model)
-                mlflow.set_tag('model_name', ml_model)
-                model_source = model_tags.get('source')
-                if model_source:
-                    mlflow.set_tag('model_source', model_source)
+                self.model = eval(ml_model)()
             else:
                 logging.error(get_msg("Model not defined", "ERROR"))
                 raise AttributeError('Model not defined')
@@ -183,49 +221,48 @@ class TrainModel(TrainingSetUp):
 
         #  =============EXPERIMENT================
         # TAGS: Experimament
-        # runs:
         experiment_tags = self.mlflow_info.get('experiment_tags')
-        runs = experiment_tags.get('run')
-        if runs:
-            run_origin = runs.get('origin')
-            if run_origin:
-                mlflow.set_tag('run_origin', run_origin)
-            run_name = runs.get('name')
-            if run_name and self.get('run_name'):
-                try:
-                    mlflow.set_tag('run_name', eval(run_name))
-                except NameError:
-                    raise NameError(f"NameError: {run_name.split('.')[-1]} is not defined")
-            run_id = runs.get('id')
-            if run_id:
-                    run_id = eval(run_id)
-
-
+        if experiment_tags:
             # =====model-experiment=====:
-            model_experiment = experiment_tags.get('model-experiment')
+            model_experiment = experiment_tags.get('model_experiment')
             if model_experiment:
                 # << PIPELINE >>
-                PIPELINE = {}
+                PIPELINE = []
                 pipeline = model_experiment.get('pipeline')
                 if pipeline:
-                    if self.model:
-                        PIPELINE['model'] = self.model
+                    IN_PIPELINE = lambda x: x in [i[0] for i in PIPELINE]
+                    if self.model.__class__.__name__:
+                        PIPELINE.append(('model', self.model))
                     else:
                         if'model' in pipeline:
-                            PIPELINE['model'] = eval(pipeline.get('model'))
+                            PIPELINE.append(('model', eval(pipeline.get('model'))))
                         else:
                             logging.error(get_msg("Model not defined", "ERROR"))
                             raise AttributeError('Model not defined')
                     if 'scaler' in pipeline:
-                        PIPELINE['scalers'] = eval(pipeline.get('scaler'))
+                        # check if scaler is not in PIPELINE
+                        if not IN_PIPELINE('scaler'):
+                            if len(PIPELINE) > 0:
+                                PIPELINE.insert(0, ('scaler', eval(pipeline.get('scaler'))))
+                            else:
+                                PIPELINE.append(('scaler', eval(pipeline.get('scaler'))))
                     if 'preprocessor' in pipeline:
-                        PIPELINE['preprocessor'] = eval(pipeline.get('preprocessor'))
+                        # check if preprocessor is not in PIPELINE
+                        if not IN_PIPELINE('preprocessor') and len(PIPELINE) > 0:
+                            PIPELINE.insert(0, ('preprocessor', eval(pipeline.get('preprocessor'))))
                     if 'feature_selection' in pipeline:
-                        PIPELINE['feature_selection'] = eval(pipeline.get('feature_selection'))
+                        if not IN_PIPELINE('feature_selection') and len(PIPELINE) > 0:
+                            if IN_PIPELINE('preprocessor'):
+                                PIPELINE.insert(1, ('feature_selection', eval(pipeline.get('feature_selection'))))
                 msg = "Setting default values {} for pipeline".format(
-                    ', '.join([f"{k}: {v}" for k, v in PIPELINE.items()]))
+                    ', '.join([f"{k}: {v}" for k, v in PIPELINE]))
                 logging.info(get_msg(msg, "INFO"))
                 self.pipeline = PIPELINE
+                if self.pipeline:
+                    logging.info(get_msg("Pipeline setup complete", "SUCCESS"))
+                else:
+                    logging.error(get_msg("Pipeline not defined", "ERROR"))
+                    raise AttributeError('Pipeline not defined')
                 #-----------------------------------------
 
                 # << PARAM_GRID >>
@@ -260,6 +297,18 @@ class TrainModel(TrainingSetUp):
                 logging.info(get_msg(msg, "INFO"))
                 self.settings = sett
             #============================================
+        # runs:
+        runs = experiment_tags.get('run')
+        if runs:
+            run_name = runs.get('name')
+            if run_name and self.get('run_name'):
+                try:
+                    mlflow.set_tag('run_name', eval(run_name))
+                except NameError:
+                    raise NameError(f"NameError: {run_name.split('.')[-1]} is not defined")
+            run_id = runs.get('id')
+            if run_id:
+                    run_id = eval(run_id)
 
         logging.info(get_msg(f"MLflow setup complete. Experiment: {experiment_tags.get('exp_name')}", "SUCCESS"))
 
@@ -270,22 +319,36 @@ class TrainModel(TrainingSetUp):
             # |-------------------------------------------------------------------------|
             # |------------------|        Start MLflow run              |---------------|
             # |-------------------------------------------------------------------------|
-        with mlflow.start_run(experiment_id="{}".format( self.exp_id), 
-                              run_name="{}".self.id) as run:
+    
+ 
+        self.create_pipeline()
+        self.create_params()
+
+
+
+
+        exp_id = self.mlflow_info.get('experiment_tags').get('experiment_id')
+        with mlflow.start_run(experiment_id="{}".format(exp_id), 
+                              run_name=f"{self.id}", nested=True) as run:
 
             # Create pipeline for training
-            self.create_pipeline()
-            self.create_params()
+
+
             self.run_id = run.info.run_id
 
-            if not all(hasattr(self, attr) for attr in ['param_grid', 'cv', 'scoring']):
-                logging.error(get_msg("param_grid, cv, and scoring must be defined",
-                                    "ERROR"))
+            # Enable autologging
+            mlflow.sklearn.autolog()
+
+            if not all([self.pipeline, self.param_grid, self.settings]):
                 raise AttributeError('param_grid, cv, and scoring must be defined')
 
-            logging.info(get_msg("Starting GridSearchCV", "INFO"))
-            grid_search = GridSearchCV(self.pipeline, self.param_grid, cv=self.cv,
-                                    scoring=self.scoring)
+            logging.info(get_msg("Starting GridSearchCV", "INFO"))           
+            grid_search = GridSearchCV(
+                self.pipeline,
+                self.param_grid,
+                **self.settings,
+                refit='accuracy'
+                )
             if not hasattr(self, 'n_jobs'):
                 logging.warning(get_msg("n_jobs not defined. Defaulting to 1", "WARNING"))
                 self.n_jobs = 1
@@ -293,38 +356,83 @@ class TrainModel(TrainingSetUp):
                 logging.error(get_msg("Data has not been loaded or split yet", "ERROR"))
             else:
                 grid_search.fit(self.X_train, self.y_train)
-                self.model = grid_search.best_estimator_
-                logging.info(get_msg(f"GridSearchCV completed. Best score: \
-                                    {grid_search.best_score_}", "SUCCESS"))
 
-                logging.info(get_msg(f"Logging best parameters and score to MLflow",
-                                    "INFO"))
-                mlflow.log_params(grid_search.best_params_)
-                mlflow.log_metric("best_score", grid_search.best_score_)
-                mlflow.sklearn.log_model(self.model, "model")
 
-                logging.info(get_msg("Making predictions on test set", "INFO"))
-                self.y_pred = self.model.predict(self.X_test)
-                self.y_pred_proba = self.model.predict_proba(self.X_test)
+                # Log accuracy at training step 10
+                accuracy = accuracy_score(self.y_train, grid_search.predict(self.X_train))
+                log_metric("accuracy", accuracy, step=10)
+                print(f"Step 10 - Accuracy: {accuracy}")  # Print accuracy
 
-                self.log_metrics()
+                # Log additional metrics and parameters
+                precision = precision_score(self.y_train, grid_search.predict(self.X_train))
+                mlflow.log_metric("precision", precision)
+                print(f"Precision: {precision}")  # Print precision
+
+                recall = recall_score(self.y_train, grid_search.predict(self.X_train))
+                mlflow.log_metric("recall", recall)
+                print(f"Recall: {recall}")  # Print recall
+
+                param1 = grid_search.best_params_['model__param1']
+                mlflow.log_param("param1", param1)
+                print(f"Param1: {param1}")  # Print param1
+
+                param2 = grid_search.best_params_['model__param2']
+                mlflow.log_param("param2", param2)
+                print(f"Param2: {param2}")  # Print param2
+
+
+
+
+
+                # # Log accuracy at training step 10
+                # accuracy = accuracy_score(self.y_train, grid_search.predict(self.X_train))
+                # log_metric("accuracy", accuracy, step=10)
+
+                # # 
+                
+                # # Log additional metrics and parameters
+                # mlflow.log_metric("precision", precision_score(self.y_train, grid_search.predict(self.X_train)))
+                # mlflow.log_metric("recall", recall_score(self.y_train, grid_search.predict(self.X_train)))
+                # mlflow.log_param("param1", grid_search.best_params_['model__param1'])
+                # mlflow.log_param("param2", grid_search.best_params_['model__param2'])
+
+                # Log model
+                log_model(grid_search, "model")
+                logging.info(get_msg("GridSearchCV completed", "SUCCESS"))
+                self.model = grid_search
+
         # check if model is trained
         if hasattr(self, 'model') and self.model is not None:
             logging.error(get_msg("Model has not been trained", "ERROR"))
             raise Exception("Model has not been trained")
         logging.info(get_msg("Model training completed", "SUCCESS"))
 
+    def my_log_metrics(self, **kwargs):
+        '''
+        Logs metrics to MLflow
+        '''
+        for metric, value in kwargs.items():
+            log_metric(metric, value)
+
     def log_metrics(self):
         '''
         Logs metrics to MLflow
         '''
-        logging.info(get_msg("Calculating and logging additional metrics", "INFO"))
-        from sklearn.metrics import accuracy_score, f1_score
-        accuracy = accuracy_score(self.y_test, self.y_pred)
-        f1 = f1_score(self.y_test, self.y_pred, average='weighted')
-        mlflow.log_metric("accuracy", accuracy)
-        mlflow.log_metric("f1_score", f1)
-        logging.info(get_msg(f"Accuracy: {accuracy:.4f}, F1 Score: {f1:.4f}", "SUCCESS"))
+        for metric, value in self.metrics.items():
+            
+            log_metric(metric, value)
+
+
+    def my_scoring(self, **kwargs):
+        '''
+        Scoring function
+        '''
+        for metric, value in kwargs.items():
+            log_metric(metric, value)
+
+
+    
+    
 
     def mem_utilization(self, step=0, sleep_time=10, target_gpu=95):
         '''

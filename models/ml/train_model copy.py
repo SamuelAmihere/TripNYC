@@ -58,12 +58,10 @@ def create_experiment(exp_name=None) -> None:
                     tracking_uri = f"{parent_root}/{models_dir}"
                     
                     os.makedirs(models_dir, exist_ok=True)
-
-
-                tracking_uri = "file:///E:/amihere/programmingLessons/ALX-Backend/FINAL PROJECT/TripNYC/models/ml/models"
-
-                mlflow.set_tracking_uri(f"{tracking_uri}")
-                print(f"========tracking_uri: {tracking_uri} set=======")
+                    absp = os.path.abspath(tracking_uri)
+        
+                mlflow.set_tracking_uri(f"file:///{tracking_uri}")
+                print(f"========tracking_uri: {tracking_uri} set=======", absp)
             except Exception as e:
                 logging.error(get_msg(f"Error setting tracking URI: {e}", 'ERROR'))
 
@@ -73,8 +71,6 @@ def create_experiment(exp_name=None) -> None:
         logging.info(get_msg(f"Resuming experiment: {exp_name} with ID: {exp_id}", 'INFO'))
     else:
         exp_id = mlflow.create_experiment(exp_name)
-        # Set the experiment
-        mlflow.set_experiment(exp_name)
         if exp_id:
             print(f"========Created new experiment with id : {exp_id}=======")
             
@@ -85,11 +81,6 @@ def create_experiment(exp_name=None) -> None:
                 except Exception as e:
                     logging.error(get_msg(f"Error setting experiment description: {e}", 'ERROR'))   
             
-            # set experiment id
-            try:
-                mlflow.set_experiment(exp_id)
-            except Exception as e:
-                logging.error(get_msg(f"Error setting experiment ID: {e}", 'ERROR'))
             logging.info(get_msg(f"Experiment created with ID: {exp_id}", 'INFO'))
 
             print(f"-------Experiment ID: {exp_id}")
@@ -123,6 +114,14 @@ def create_experiment(exp_name=None) -> None:
                 except Exception as e:
                     logging.error(get_msg(f"Error setting CPU tags: {e}", 'ERROR'))
             
+            # try:
+            #     # Initialize MLflow client for logging: GPU memory utilization
+            #     mlflow_client_gpu = mlflow.tracking.MlflowClient(tracking_uri=tracking_uri)
+            #     mlflow_client_gpu.log_metric(exp_id, 'gpu.memory_total', memTotal)
+            #     mlflow_client_gpu.log_metric(exp_id, 'gpu.memory_used', memUsed)
+            #     mlflow_client_gpu.log_param(exp_id, 'gpu.name', gpuName)
+            # except Exception as e:
+            #     logging.error(get_msg(f"Error logging GPU metrics: {e}", 'ERROR'))
         else:
             print(f"<<<<< Experiment not created {create_experiment}")
         # runs:
@@ -134,11 +133,7 @@ def create_experiment(exp_name=None) -> None:
                 except Exception as e:
                     logging.error(get_msg(f"Error setting run origin: {e}", 'ERROR'))
     
-
-
-        model_exp = config_FA['mlflow']['experiment_tags']
         config_FA['mlflow']['experiment_tags'] = {
-                            **model_exp,
                             'experiment_id': exp_id,
                             'run_origin': run_origin,
                             'tracking_uri': tracking_uri,
@@ -164,9 +159,11 @@ def main():
     args = take_args()
     EXP_ID = args.exp_id
 
-    create_experiment()
-    if EXP_ID:
-        config_FA['mlflow']["experiment_tags"]["experiment_id"] = EXP_ID
+    if not EXP_ID:
+        create_experiment()
+
+
+    config_FA['mlflow']["experiment_tags"]["experiment_id"] = EXP_ID
     config_FA['mlflow']["data_tags"]["data_path"] = YELLO_TAXI_DATA
     config_FA['mlflow']["data_tags"]["description"] = YELLO_TAXI_DATA_DESC
 
@@ -174,8 +171,7 @@ def main():
     # Initialize the model trainer
     trainer_FA = TrainModel(**config_FA)
     
-    exp_id = trainer_FA.__dict__.get('mlflow_info').get('experiment_tags').get('experiment_id')
-    # print(f"=======Starting RUN===========[{exp_id}]=============")
+    print(trainer_FA.__dict__.keys())
 
     artifact_path = mlflow.get_artifact_uri()
     logging.info(get_msg(f"Artifact path: {artifact_path}", "INFO"))

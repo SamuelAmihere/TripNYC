@@ -58,8 +58,8 @@
         },
         "DATA_PATH":  {
             "yellow": {
-                "path": "models/ml/Data/yellow/yellow_tripdata_all.csv",
-                "description": "models/ml/utils/config/feat_target.json"
+                "path": "models/ml/Data/yellow/yellow_tripdata_30.csv",
+                "description": "models/utils/config/feat_target.json"
             }
         }
     }
