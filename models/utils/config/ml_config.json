@@ -20,9 +20,9 @@
                 "train_env": "locals"
             },
             "model_tags": {
-                "model": "RandomForestClassifier",
+                "model": "SVR(kernel='rbf')",
                 "model_name": "fare_amount_model1",
-                "model_type": "classification",
+                "model_type": "regression",
                 "version": "0.1.0",
                 "source": "models/train_model.py",
                 "model_size": "f\"{os.path.getsize(model_path)}\""
@@ -41,12 +41,13 @@
                 },
                 "model_experiment": {
                     "pipeline": {
-                        "model": "RandomForestClassifier()",
+                        "model": "SVR(kernel='rbf')",
                         "scaler": "StandardScaler()"
                     },
                     "param_grid": {
-                        "model__n_estimators": [100, 200, 300],
-                        "model__max_depth": [5, 10]
+                        "fare_amount_model1__C": [0.1, 1, 10, 100],
+                        "fare_amount_model1__gamma": [0.001, 0.01, 0.1, 1],
+                        "fare_amount_model1__epsilon": [0.01, 0.1, 0.2, 0.5]
                     },
                     "settings": {
                         "cv": 5,

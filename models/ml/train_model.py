@@ -9,6 +9,7 @@ import logging
 from models.utils.model_func import load_config
 from models.utils.config.msg_config import get_msg
 from models.ml.model import TrainModel
+import sklearn
 
 
 CONFIG_PATH = 'models/utils/config/ml_config.json'
@@ -134,7 +135,11 @@ def create_experiment(exp_name=None) -> None:
                 except Exception as e:
                     logging.error(get_msg(f"Error setting run origin: {e}", 'ERROR'))
     
-
+        # Enable autologging
+        mlflow.autolog(
+            log_model_signatures=True,
+        )
+        mlflow.sklearn.autolog()
 
         model_exp = config_FA['mlflow']['experiment_tags']
         config_FA['mlflow']['experiment_tags'] = {

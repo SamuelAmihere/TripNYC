@@ -133,6 +133,7 @@ class TrainingSetUp:
             if self.param_grid:
                 logging.info(get_msg("Parameters created successfully", "SUCCESS"))
             else:
+                # print("======", self.param_grid)
                 logging.error(get_msg("Parameters not created", "ERROR"))
                 raise AttributeError('Parameters not created')
 
@@ -175,44 +176,55 @@ class TrainModel(TrainingSetUp):
         if model_tags:
             ml_model = model_tags.get('model')
             if ml_model:
-                if ml_model == 'RandomForestClassifier':
+                par = ml_model.split('(')[0]
+                print(f"<<<<<ml_model: {ml_model}")
+                arg = ml_model.split('(')[1].split(')')[0]
+                if par == 'RandomForestClassifier':
                     from sklearn.ensemble import RandomForestClassifier
-                if ml_model == 'RandomForestRegressor':
+                if par == 'RandomForestRegressor':
                     from sklearn.ensemble import RandomForestRegressor
-                if ml_model == 'RandomForest':
+                if par == 'RandomForest':
                     from sklearn.ensemble import RandomForestClassifier
                     from sklearn.ensemble import RandomForestRegressor
-                if ml_model == 'SVC':
+                if par == 'SVC':
                     from sklearn.svm import SVC
-                if ml_model == 'LogisticRegression':
+                if par == 'SVR':
+                    from sklearn.svm import SVR
+                if par == 'LogisticRegression':
                     from sklearn.linear_model import LogisticRegression
-                if ml_model == 'LinearRegression':
+                if par == 'LinearRegression':
                     from sklearn.linear_model import LinearRegression
-                if ml_model == 'KNeighborsClassifier':
+                if par == 'KNeighborsClassifier':
                     from sklearn.neighbors import KNeighborsClassifier
-                if ml_model == 'KNeighborsRegressor':
+                if par == 'KNeighborsRegressor':
                     from sklearn.neighbors import KNeighborsRegressor
-                if ml_model == 'DecisionTreeClassifier':
+                if par == 'DecisionTreeClassifier':
                     from sklearn.tree import DecisionTreeClassifier
-                if ml_model == 'DecisionTreeRegressor':
+                if par == 'DecisionTreeRegressor':
                     from sklearn.tree import DecisionTreeRegressor
-                if ml_model == 'GradientBoostingClassifier':
+                if par == 'GradientBoostingClassifier':
                     from sklearn.ensemble import GradientBoostingClassifier
-                if ml_model == 'GradientBoostingRegressor':
+                if par == 'GradientBoostingRegressor':
                     from sklearn.ensemble import GradientBoostingRegressor
-                if ml_model == 'AdaBoostClassifier':
+                if par == 'AdaBoostClassifier':
                     from sklearn.ensemble import AdaBoostClassifier
-                if ml_model == 'AdaBoostRegressor':
+                if par == 'AdaBoostRegressor':
                     from sklearn.ensemble import AdaBoostRegressor
-                if ml_model == 'XGBClassifier':
+                if par == 'XGBClassifier':
                     from xgboost import XGBClassifier
-                if ml_model == 'XGBRegressor':
+                if par == 'XGBRegressor':
                     from xgboost import XGBRegressor
                 # initialize the specified model
-                self.model = eval(ml_model)()
+                model = f"{par}({arg})"
+                self.model = eval(model)
             else:
                 logging.error(get_msg("Model not defined", "ERROR"))
                 raise AttributeError('Model not defined')
+
+            model_name = model_tags.get('model_name')
+            if model_name:
+                self.model_name = model_name
+        
         else:
             logging.error(get_msg("Model tags not defined. \
                                   \nCheck models/utils/config/ml_config.json",
@@ -232,7 +244,7 @@ class TrainModel(TrainingSetUp):
                 if pipeline:
                     IN_PIPELINE = lambda x: x in [i[0] for i in PIPELINE]
                     if self.model.__class__.__name__:
-                        PIPELINE.append(('model', self.model))
+                        PIPELINE.append((self.model_name, self.model))
                     else:
                         if'model' in pipeline:
                             PIPELINE.append(('model', eval(pipeline.get('model'))))
@@ -266,19 +278,17 @@ class TrainModel(TrainingSetUp):
                 #-----------------------------------------
 
                 # << PARAM_GRID >>
-                p_grid = {}
+                # p_grid = {}
                 param_grid = model_experiment.get('param_grid')
+                # print(f"======param_grid", param_grid)
                 if param_grid:
-                    model__n_estimators = param_grid.get('model__n_estimators')
-                    if model__n_estimators:
-                        p_grid['model__n_estimators'] = model__n_estimators
-                    model__max_depth = param_grid.get('model__max_depth')
-                    if model__max_depth:
-                        p_grid['model__max_depth'] = model__max_depth
-                msg = "Setting default values {} for param_grid".format(
-                    ', '.join([f"{k}: {v}" for k, v in p_grid.items()]))
-                logging.info(get_msg(msg, "INFO"))
-                self.param_grid = p_grid
+                    # build param_grid for model
+
+
+                    msg = "Setting default values {} for param_grid".format(
+                        ', '.join([f"{k}: {v}" for k, v in param_grid.items()]))
+                    logging.info(get_msg(msg, "INFO"))
+                    self.param_grid = param_grid
                 #-----------------------------------------
 
                 # << SETTINGS: Model Training >>
@@ -336,8 +346,6 @@ class TrainModel(TrainingSetUp):
 
             self.run_id = run.info.run_id
 
-            # Enable autologging
-            mlflow.sklearn.autolog()
 
             if not all([self.pipeline, self.param_grid, self.settings]):
                 raise AttributeError('param_grid, cv, and scoring must be defined')
@@ -407,12 +415,17 @@ class TrainModel(TrainingSetUp):
             raise Exception("Model has not been trained")
         logging.info(get_msg("Model training completed", "SUCCESS"))
 
-    def my_log_metrics(self, **kwargs):
+    def my_log_metrics(self, r):
         '''
         Logs metrics to MLflow
         '''
-        for metric, value in kwargs.items():
-            log_metric(metric, value)
+        tags = {k: v for k, v in r.data.tags.items() if not k.startswith("mlflow.")}
+        artifacts = [f.path for f in MlflowClient().list_artifacts(r.info.run_id, "model")]
+        print(f"run_id: {r.info.run_id}")
+        print(f"artifacts: {artifacts}")
+        print(f"params: {r.data.params}")
+        print(f"metrics: {r.data.metrics}")
+        print(f"tags: {tags}")
 
     def log_metrics(self):
         '''
