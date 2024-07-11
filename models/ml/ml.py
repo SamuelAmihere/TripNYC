@@ -4,7 +4,7 @@ import sys
 sys.path.append("..")
 
 import os
-from base.base_model import BaseModel, Base
+from models.base.base_model import BaseModel, Base
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, String, Integer, Float
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -18,7 +18,7 @@ import numpy as np
 from sqlalchemy.orm import relationship
 from dotenv import load_dotenv
 
-from utils.model_func import update_value
+from models.utils.model_func import update_value
 load_dotenv()
 
 
@@ -32,8 +32,8 @@ class Prediction(BaseModel, Base):
         predicted_at = Column(DateTime, nullable=False)
         duration = Column(Float, default=0.0)
         result = Column(Float, default=0.0)
-        model = Column(String(255), ForeignKey('model.id'), nullable=False)
-        ml = relationship("ML", back_populates="predictions")
+        model_id = Column(String(255), ForeignKey('model.id'), nullable=False)
+        model = relationship("Model", back_populates="predictions")
     else:
         predicted_at = ""
         duration = 0.0
@@ -52,8 +52,8 @@ class ML(BaseModel, Base):
         name = Column(String(255), nullable=False)
         version = Column(String(255), nullable=False)
         description = Column(String(255), default="")
-        performance_metrics = Column(JSONB, nullable=False)
-        model_path = Column(String(255), nullable=False)
+        performance_metrics = Column(JSONB)
+        model_path = Column(String(255))
         hyperparameters = Column(JSONB, nullable=False)
     else:
         name = ""
@@ -92,18 +92,21 @@ class ML(BaseModel, Base):
             """Sets the hyperparameters for the model"""
             _ = update_value(self, ML, 'hyperparameters', value, True, id=self.id)
 
-class Model(ML, mlflow.pyfunc.PythonModel):
+class Model(BaseModel, Base):
     """Represents a machine learning model."""
     __tablename__ = 'model'
     if storage_type == 'db':
+        ml_id = Column(String(255), ForeignKey('ml.id'), nullable=False)
         predictions = relationship("Prediction", back_populates="model")
+
     else:
+        ml_id = ""
         predictions = []
         @property
         def predictions(self):
             """Gets all predictions for the model"""
             from models.base import storage
-            vals = storage.get_by(ML, id=self.id)
+            vals = storage.get_by(Model, id=self.id)
             if vals:
                 return vals.to_dict().get('predictions', [])
             return self.__dict__.get('predictions', [])
@@ -111,7 +114,7 @@ class Model(ML, mlflow.pyfunc.PythonModel):
         @predictions.setter
         def predictions(self, value: list):
             """Sets the predictions for the model"""
-            _ = update_value(self, ML, 'predictions', value, id=self.id)
+            _ = update_value(self, Model, 'predictions', value, id=self.id)
     
     
     def load_context(self, context):

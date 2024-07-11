@@ -1,0 +1,31 @@
+digest: c3f87ebe
+name: dataset
+profile: '{"num_rows": 1686034, "num_elements": 53953088}'
+schema: '{"mlflow_colspec": [{"type": "long", "name": "passenger_count", "required":
+  true}, {"type": "double", "name": "trip_distance", "required": true}, {"type": "double",
+  "name": "extra", "required": true}, {"type": "double", "name": "mta_tax", "required":
+  true}, {"type": "double", "name": "tip_amount", "required": true}, {"type": "double",
+  "name": "tolls_amount", "required": true}, {"type": "double", "name": "improvement_surcharge",
+  "required": true}, {"type": "double", "name": "total_amount", "required": true},
+  {"type": "double", "name": "congestion_surcharge", "required": true}, {"type": "long",
+  "name": "p_year", "required": true}, {"type": "long", "name": "p_hour", "required":
+  true}, {"type": "long", "name": "d_hour", "required": true}, {"type": "long", "name":
+  "p_minute", "required": true}, {"type": "long", "name": "d_minute", "required":
+  true}, {"type": "long", "name": "travel_time", "required": true}, {"type": "long",
+  "name": "VendorID", "required": true}, {"type": "long", "name": "payment_type",
+  "required": true}, {"type": "long", "name": "PULocationID", "required": true}, {"type":
+  "long", "name": "DOLocationID", "required": true}, {"type": "long", "name": "p_month",
+  "required": true}, {"type": "long", "name": "p_week", "required": true}, {"type":
+  "long", "name": "p_day", "required": true}, {"type": "boolean", "name": "store_and_fwd_flag_N",
+  "required": true}, {"type": "boolean", "name": "store_and_fwd_flag_Y", "required":
+  true}, {"type": "boolean", "name": "p_day_part_afternoon", "required": true}, {"type":
+  "boolean", "name": "p_day_part_evening", "required": true}, {"type": "boolean",
+  "name": "p_day_part_morning", "required": true}, {"type": "boolean", "name": "p_day_part_night",
+  "required": true}, {"type": "boolean", "name": "p_season_fall", "required": true},
+  {"type": "boolean", "name": "p_season_spring", "required": true}, {"type": "boolean",
+  "name": "p_season_summer", "required": true}, {"type": "boolean", "name": "p_season_winter",
+  "required": true}]}'
+source: '{"tags": {"mlflow.user": "lenovo", "mlflow.source.name": "E:\\amihere\\programmingLessons\\ALX-Backend\\FINAL
+  PROJECT\\TripNYC\\models\\ml\\train_model.py", "mlflow.source.type": "LOCAL", "mlflow.source.git.commit":
+  "c32b99ef2fc8c8ec006a6dd925298e34fd81f99a"}}'
+source_type: code

@@ -2,6 +2,10 @@
 """This module contains helper functions for the models."""
 
 
+import logging
+
+import mlflow
+
 def add_data(caller, attr, cls, value: str):
     """Adds a value to object's attribute list.
     Args:
@@ -95,3 +99,33 @@ def process_color_codes(CONFIG_PATH):
     config = load_config(CONFIG_PATH).get("COLORS")
     config = {k: v.replace('\\033', '\033') for k, v in config.items()}
     return config
+
+
+
+def create_experiment(exp_name="fare_amount", run_id=None) -> None:
+    """Create an experiment in MLflow
+    :param EXP_ID: Experiment ID
+    """
+    from models.utils.config.msg_config import get_msg
+    logging.info(get_msg(f"Creating experiment: {exp_name}", 'INFO'))
+    
+
+    exp = mlflow.get_experiment_by_name(exp_name)
+    if exp:
+        exp_id = exp.experiment_id
+        print(f"=======Experiment already exists: {exp_name}===========[{exp_id}]=============")
+    else:
+        exp_id = mlflow.create_experiment(exp_name)
+        # Set the experiment
+        if exp_id:
+            logging.info(get_msg(f"Experiment created with ID: {exp_id}", 'INFO'))
+        else:
+            print(f"<<<<< Experiment not created {create_experiment}")
+    
+    # Enable autologging
+    mlflow.autolog(
+        log_model_signatures=True,
+    )
+    mlflow.sklearn.autolog()
+
+    return exp_id

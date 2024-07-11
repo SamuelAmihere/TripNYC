@@ -2,7 +2,6 @@
 """create a unique FileStorage instance for your application"""
 from models.location.borough import Borough
 from models.location.zone import Zone
-from models.ml.ml import Prediction, ModelPerformance, ML
 from models.trip.fhv_trip import FHVTrip
 from models.trip.rating import Rating
 from models.trip.taxi_trip import TaxiTrip
@@ -19,9 +18,6 @@ classes = {'Zone': Zone, 'Borough': Borough,
            'DispatchBase': DispatchBase,
             'FHVTrip': FHVTrip,
             'TaxiTrip': TaxiTrip,
-            'Prediction': Prediction,
-            'ML': ML,
-            'ModelPerformance': ModelPerformance,
             'Rating': Rating
            }
 

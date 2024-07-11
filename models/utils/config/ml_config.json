@@ -21,15 +21,15 @@
             },
             "model_tags": {
                 "model": "SVR(kernel='rbf')",
-                "model_name": "fare_amount_model1",
+                "model_name": "svr",
                 "model_type": "regression",
                 "version": "0.1.0",
+                "description": "Support Vector Regression model to predict the fare amount of NYC taxi rides",
                 "source": "models/train_model.py",
                 "model_size": "f\"{os.path.getsize(model_path)}\""
             },
             "experiment_tags": {
-                "experiment_name": "tripnyc_ml_experiments",
-                "experiment_id": "self.exp_id",
+                "experiment_name": "fare_amount",
                 "experiment_description": "This is a test run for the NYC taxi fare prediction model",
                 "tracking_uri": "os.environ.get('MLFLOW_TRACKING_URI')",
                 "experiment_owner": "amisam2000@gmail.com",
@@ -45,9 +45,9 @@
                         "scaler": "StandardScaler()"
                     },
                     "param_grid": {
-                        "fare_amount_model1__C": [0.1, 1, 10, 100],
-                        "fare_amount_model1__gamma": [0.001, 0.01, 0.1, 1],
-                        "fare_amount_model1__epsilon": [0.01, 0.1, 0.2, 0.5]
+                        "svr__C": [0.1, 1, 10, 100],
+                        "svr__gamma": [0.001, 0.01, 0.1, 1],
+                        "svr__epsilon": [0.01, 0.1, 0.2, 0.5]
                     },
                     "settings": {
                         "cv": 5,
