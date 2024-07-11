@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 """ TripNYC Application """
+import uuid
 from models.base import storage
 from flask import Flask, render_template, make_response, jsonify
 from flask_cors import CORS, cross_origin
@@ -30,12 +31,13 @@ CORS(app, resources={'/*': {'origins': host+':'+port}})
 @app.route('/', methods=['GET'])
 def status():
     """ Status of API """
-
+    cache_id = uuid.uuid4()
     src = '../TripNYC-resources/Data/nb_lat_lon_final.csv'
     # create_zone(src)
 
     boroughs = storage.all(Borough).values()
     zones = storage.all(Zone).values()
+
     # zones1 = {i.id: i.name for i in zones}
     
     # # get data by id
@@ -49,7 +51,11 @@ def status():
     #                     list(map(lambda x: filter_name(x), br.get('zones')))})
     #     boroughs_d.append(borough)
  
-    return render_template('nyc_taxi_zones.html', boroughs=boroughs, zones=zones)
+    return render_template('nyc_taxi_zones.html',
+                           boroughs=boroughs,
+                           zones=zones,
+                           cache_id=cache_id,
+                           total_trips=1600000)
 
 @app.teardown_appcontext
 def teardown_db(exception):

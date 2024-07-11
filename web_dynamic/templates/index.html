@@ -4,99 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NYC Taxi Zones Map</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #cecbcb;
-            display: flex;
-            /* justify-content: center; */
-            /* align-items: center; */
-            height: 100vh;
-        }
-        #map-container {
-            width: 60%;
-            height: 400px;
-            position: relative;
-
-            float: left;
-            justify-content: center;
-            scroll-snap-align: start;
-            border: #184c13 1px solid;
-            background-color: black;
-            margin-top: auto;
-            margin-bottom: auto;
-            margin-left: 5px;
-            /* left: 10px; */
-
-
-        }
-        #svg-object {
-            width: 150%;
-            height: 130%;
-            padding: auto;
-            margin: 0;
-            transition: transform 0.5s ease;
-
-        }
-        #right-pane {
-            /* width: 50%; */
-            height: 400px;
-            float: right;
-            justify-content: center;
-            border: #312d2d 2px solid;
-            border-radius: 10px;
-            margin-top: auto;
-            margin-bottom: auto;
-            margin-right: 5px;
-            right: 10px;
-            margin-left: 2px
-
-        }
-        #right-container, #right-pane {
-            /* width: 50%; */
-            height: 400px;
-            overflow: hidden;
-            justify-content: center;
-            margin-top: auto;
-            margin-bottom: auto;
-            margin-right: 5px;
-            right: 10px;
-            
-        }
-
-        #right-container{
-            /* width: 50%; */
-            height: 400px;
-            overflow: auto;
-            justify-content: center;
-            scroll-snap-align: start;
-            margin-top: auto;
-            margin-bottom: auto;
-            margin-right: 5px;
-            right: 10px;
-            border-top: #7e3737 2px solid;
-            border-top-style: ridge;
-        }
-        #map-container, #right-container {
-            display: inline-block;
-            vertical-align: top;
-            overflow: scroll;
-            scrollbar-width: thin;
-            scroll-behavior: smooth;
-            scrollbar-gutter: auto;
-        }
-
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='../static/styles/home.css')}}">
 </head>
 <body>
+    <header>
+        <h1>NYC Taxi Zones Map</h1>
+    </header>
+
+
+
     <div id="map-container">
         <object id="svg-object" type="image/svg+xml" data="{{ url_for('static', filename='nyc_taxi_zones_grouped.svg') }}">
             Your browser does not support SVG
         </object>
     </div>
 
-    <div id="right-pane">
+    <!-- <div id="right-pane">
         <h1>Zones</h1>
         <div id="right-container">
             <ul>
@@ -113,6 +36,64 @@
                 {% endfor %}
             </ul>            
         </div>
+    </div> -->
+
+    <div id="forecasts">
+        <h2>Estimat Fare Amount</h2>
+        <div class="fare_amount">
+
+            <!-- form -->
+            <form id="fare-form">
+                <label for="borough">Borough:</label>
+                <select name="borough" id="borough">
+                    <option value="Bronx">Bronx</option>
+                    <option value="Brooklyn">Brooklyn</option>
+                    <option value="Manhattan">Manhattan</option>
+                    <option value="Queens">Queens</option>
+                    <option value="Staten Island">Staten Island</option>
+                </select>
+                <label for="zone">Zone:</label>
+                <select name="zone" id="zone">
+                    <option value="All">All</option>
+                    {% for borough in bzones %}
+                        {% for z in borough.zones %}
+                            <option value="{{ z }}">{{ z }}</option>
+                        {% endfor %}
+                    {% endfor %}
+                </select>
+                <br><label for="year">Year:</label>
+                <select name="year" id="year">
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    
+                </select>
+                <label for="month">Month:</label>
+                <select name="month" id="month">
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+                <button type="submit">Submit</button>
+
+        </div>
+
+        <!-- Output -->
+        <div id="output">
+            <h3>Estimated Fare Amount</h3>
+            <p id="fare-amount"></p>
+
+
     </div>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -121,7 +102,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('map-container');
             const content = document.getElementById('svg-object');
-    
+
             let zoom = 4;
             const ZOOM_SPEED = 0.4;
             let isDragging = true;
@@ -134,13 +115,13 @@
                 zoom = Math.min(Math.max(1, zoom), 3);  // Restrict zoom level between 1x and 3x
                 updateTransform();
             });
-    
+
             container.addEventListener('mousedown', function(e) {
                 isDragging = true;
                 startX = e.clientX - translateX;
                 startY = e.clientY - translateY;
             });
-    
+
             container.addEventListener('mousemove', function(e) {
                 if (isDragging) {
                     translateX = e.clientX - startX;
@@ -148,15 +129,15 @@
                     updateTransform();
                 }
             });
-    
+
             container.addEventListener('mouseup', function() {
                 isDragging = false;
             });
-    
+
             container.addEventListener('mouseleave', function() {
                 isDragging = false;
             });
-    
+
             function updateTransform() {
                 content.style.transform = `scale($${zoom}) translate($${translateX}px, ${translateY}px)`;
             }
